@@ -1,0 +1,535 @@
+{
+  "profile": {
+    "id": "profile_demo",
+    "userId": "user_demo",
+    "residenceType": "dorm",
+    "monthlyIncome": "5000000",
+    "dormPaidSemester": false,
+    "hasFoodFromFamily": false,
+    "onboardingCompleted": true,
+    "createdAt": "2026-04-01T00:00:00.000Z"
+  },
+  "fundTemplates": [
+    {
+      "id": "template-dorm",
+      "name": "Student in dorm",
+      "residenceType": "dorm",
+      "livingPct": "7.50",
+      "foodPct": "65.00",
+      "growthPct": "10.00",
+      "experiencePct": "7.50",
+      "futurePct": "10.00",
+      "isDefault": true
+    }
+  ],
+  "funds": [
+    {
+      "id": "fund_living_2026_04",
+      "userId": "user_demo",
+      "month": "2026-04-01",
+      "fundType": "living",
+      "allocatedAmount": "375000",
+      "spentAmount": "120000",
+      "customPercentage": "7.50",
+      "borrowAmount": "0",
+      "isLocked": false,
+      "version": 1,
+      "createdAt": "2026-04-01T00:00:00.000Z",
+      "updatedAt": "2026-04-20T00:00:00.000Z"
+    },
+    {
+      "id": "fund_food_2026_04",
+      "userId": "user_demo",
+      "month": "2026-04-01",
+      "fundType": "food",
+      "allocatedAmount": "3250000",
+      "spentAmount": "1820000",
+      "customPercentage": "65.00",
+      "borrowAmount": "0",
+      "isLocked": false,
+      "version": 1,
+      "createdAt": "2026-04-01T00:00:00.000Z",
+      "updatedAt": "2026-04-26T08:31:00.000Z"
+    },
+    {
+      "id": "fund_growth_2026_04",
+      "userId": "user_demo",
+      "month": "2026-04-01",
+      "fundType": "growth",
+      "allocatedAmount": "500000",
+      "spentAmount": "175000",
+      "customPercentage": "10.00",
+      "borrowAmount": "0",
+      "isLocked": false,
+      "version": 1,
+      "createdAt": "2026-04-01T00:00:00.000Z",
+      "updatedAt": "2026-04-20T00:00:00.000Z"
+    },
+    {
+      "id": "fund_experience_2026_04",
+      "userId": "user_demo",
+      "month": "2026-04-01",
+      "fundType": "experience",
+      "allocatedAmount": "375000",
+      "spentAmount": "210000",
+      "customPercentage": "7.50",
+      "borrowAmount": "0",
+      "isLocked": false,
+      "version": 1,
+      "createdAt": "2026-04-01T00:00:00.000Z",
+      "updatedAt": "2026-04-24T00:00:00.000Z"
+    },
+    {
+      "id": "fund_future_2026_04",
+      "userId": "user_demo",
+      "month": "2026-04-01",
+      "fundType": "future",
+      "allocatedAmount": "500000",
+      "spentAmount": "0",
+      "customPercentage": "10.00",
+      "borrowAmount": "0",
+      "isLocked": true,
+      "version": 1,
+      "createdAt": "2026-04-01T00:00:00.000Z",
+      "updatedAt": "2026-04-20T00:00:00.000Z"
+    }
+  ],
+  "tags": [
+    {
+      "id": "tag_food_drinks",
+      "name": "Food and Drinks",
+      "fundType": "food",
+      "iconUrl": null,
+      "isSystem": true,
+      "userId": null
+    },
+    {
+      "id": "tag_experience",
+      "name": "Experience",
+      "fundType": "experience",
+      "iconUrl": null,
+      "isSystem": true,
+      "userId": null
+    },
+    {
+      "id": "tag_development",
+      "name": "Development",
+      "fundType": "growth",
+      "iconUrl": null,
+      "isSystem": true,
+      "userId": null
+    },
+    {
+      "id": "tag_fixed_bill",
+      "name": "Fixed bill",
+      "fundType": "living",
+      "iconUrl": null,
+      "isSystem": true,
+      "userId": null
+    },
+    {
+      "id": "tag_savings",
+      "name": "Savings",
+      "fundType": "future",
+      "iconUrl": null,
+      "isSystem": true,
+      "userId": null
+    }
+  ],
+  "transactions": [
+    {
+      "id": "tx_001",
+      "userId": "user_demo",
+      "fundId": "fund_food_2026_04",
+      "amount": "65000",
+      "transactionType": "expense",
+      "category": "Food and Drinks",
+      "description": "Bun cha",
+      "inputMethod": "manual",
+      "aiConfidence": null,
+      "isAiCorrected": false,
+      "mealType": "main",
+      "transactionDate": "2026-04-26T08:30:00.000Z",
+      "createdAt": "2026-04-26T08:31:00.000Z"
+    },
+    {
+      "id": "tx_002",
+      "userId": "user_demo",
+      "fundId": "fund_future_2026_04",
+      "amount": "3000000",
+      "transactionType": "income",
+      "category": "Savings",
+      "description": "Monthly allowance",
+      "inputMethod": "manual",
+      "aiConfidence": null,
+      "isAiCorrected": false,
+      "mealType": null,
+      "transactionDate": "2026-04-25T21:30:00.000Z",
+      "createdAt": "2026-04-25T21:31:00.000Z"
+    },
+    {
+      "id": "tx_003",
+      "userId": "user_demo",
+      "fundId": "fund_experience_2026_04",
+      "amount": "100000",
+      "transactionType": "expense",
+      "category": "Experience",
+      "description": "Movie night",
+      "inputMethod": "manual",
+      "aiConfidence": null,
+      "isAiCorrected": false,
+      "mealType": null,
+      "transactionDate": "2026-04-24T20:00:00.000Z",
+      "createdAt": "2026-04-24T20:01:00.000Z"
+    },
+    {
+      "id": "tx_overspend",
+      "userId": "user_demo",
+      "fundId": "fund_food_2026_04",
+      "amount": "2000000",
+      "transactionType": "expense",
+      "category": "Food and Drinks",
+      "description": "Group dinner",
+      "inputMethod": "manual",
+      "aiConfidence": null,
+      "isAiCorrected": false,
+      "mealType": "main",
+      "transactionDate": "2026-04-22T10:30:00.000Z",
+      "createdAt": "2026-04-22T10:31:00.000Z"
+    },
+    {
+      "id": "tx_level_1_0403",
+      "userId": "user_demo",
+      "fundId": "fund_food_2026_04",
+      "amount": "116000",
+      "transactionType": "expense",
+      "category": "Food and Drinks",
+      "description": "Lunch and snacks",
+      "inputMethod": "manual",
+      "aiConfidence": null,
+      "isAiCorrected": false,
+      "mealType": "sub",
+      "transactionDate": "2026-04-03T10:30:00.000Z",
+      "createdAt": "2026-04-03T10:31:00.000Z"
+    },
+    {
+      "id": "tx_level_2_0410",
+      "userId": "user_demo",
+      "fundId": "fund_food_2026_04",
+      "amount": "163000",
+      "transactionType": "expense",
+      "category": "Food and Drinks",
+      "description": "Dinner with friends",
+      "inputMethod": "manual",
+      "aiConfidence": null,
+      "isAiCorrected": false,
+      "mealType": "main",
+      "transactionDate": "2026-04-10T10:30:00.000Z",
+      "createdAt": "2026-04-10T10:31:00.000Z"
+    },
+    {
+      "id": "tx_level_1_demo",
+      "userId": "user_demo",
+      "fundId": "fund_food_2026_04",
+      "amount": "122000",
+      "transactionType": "expense",
+      "category": "Food and Drinks",
+      "description": "Food delivery",
+      "inputMethod": "manual",
+      "aiConfidence": null,
+      "isAiCorrected": false,
+      "mealType": "main",
+      "transactionDate": "2026-04-25T10:30:00.000Z",
+      "createdAt": "2026-04-25T10:31:00.000Z"
+    }
+  ],
+  "dailyFood": [
+    {
+      "id": "daily_food_2026_04_01",
+      "userId": "user_demo",
+      "date": "2026-04-01",
+      "budgetMain": "76000",
+      "budgetSub": "33000",
+      "spentMain": "54000",
+      "spentSub": "12000",
+      "savedAmount": "43000",
+      "dailyOverflow": "0",
+      "penaltyAppliedFromYesterday": "0"
+    },
+    {
+      "id": "daily_food_2026_04_03",
+      "userId": "user_demo",
+      "date": "2026-04-03",
+      "budgetMain": "76000",
+      "budgetSub": "33000",
+      "spentMain": "82000",
+      "spentSub": "34000",
+      "savedAmount": "0",
+      "dailyOverflow": "7000",
+      "penaltyAppliedFromYesterday": "0"
+    },
+    {
+      "id": "daily_food_2026_04_05",
+      "userId": "user_demo",
+      "date": "2026-04-05",
+      "budgetMain": "76000",
+      "budgetSub": "33000",
+      "spentMain": "60000",
+      "spentSub": "14000",
+      "savedAmount": "35000",
+      "dailyOverflow": "0",
+      "penaltyAppliedFromYesterday": "0"
+    },
+    {
+      "id": "daily_food_2026_04_10",
+      "userId": "user_demo",
+      "date": "2026-04-10",
+      "budgetMain": "76000",
+      "budgetSub": "33000",
+      "spentMain": "122000",
+      "spentSub": "41000",
+      "savedAmount": "0",
+      "dailyOverflow": "54000",
+      "penaltyAppliedFromYesterday": "0"
+    },
+    {
+      "id": "daily_food_2026_04_15",
+      "userId": "user_demo",
+      "date": "2026-04-15",
+      "budgetMain": "76000",
+      "budgetSub": "33000",
+      "spentMain": "70000",
+      "spentSub": "15000",
+      "savedAmount": "24000",
+      "dailyOverflow": "0",
+      "penaltyAppliedFromYesterday": "0"
+    },
+    {
+      "id": "daily_food_2026_04_18",
+      "userId": "user_demo",
+      "date": "2026-04-18",
+      "budgetMain": "76000",
+      "budgetSub": "33000",
+      "spentMain": "79000",
+      "spentSub": "36000",
+      "savedAmount": "0",
+      "dailyOverflow": "6000",
+      "penaltyAppliedFromYesterday": "0"
+    },
+    {
+      "id": "daily_food_2026_04_21",
+      "userId": "user_demo",
+      "date": "2026-04-21",
+      "budgetMain": "76000",
+      "budgetSub": "33000",
+      "spentMain": "65000",
+      "spentSub": "10000",
+      "savedAmount": "34000",
+      "dailyOverflow": "0",
+      "penaltyAppliedFromYesterday": "0"
+    },
+    {
+      "id": "daily_food_2026_04_22",
+      "userId": "user_demo",
+      "date": "2026-04-22",
+      "budgetMain": "76000",
+      "budgetSub": "33000",
+      "spentMain": "2000000",
+      "spentSub": "0",
+      "savedAmount": "0",
+      "dailyOverflow": "1891000",
+      "penaltyAppliedFromYesterday": "0"
+    },
+    {
+      "id": "daily_food_2026_04_23",
+      "userId": "user_demo",
+      "date": "2026-04-23",
+      "budgetMain": "76000",
+      "budgetSub": "33000",
+      "spentMain": "105000",
+      "spentSub": "45000",
+      "savedAmount": "0",
+      "dailyOverflow": "41000",
+      "penaltyAppliedFromYesterday": "0"
+    },
+    {
+      "id": "daily_food_2026_04_24",
+      "userId": "user_demo",
+      "date": "2026-04-24",
+      "budgetMain": "76000",
+      "budgetSub": "33000",
+      "spentMain": "60000",
+      "spentSub": "18000",
+      "savedAmount": "31000",
+      "dailyOverflow": "0",
+      "penaltyAppliedFromYesterday": "0"
+    },
+    {
+      "id": "daily_food_2026_04_25",
+      "userId": "user_demo",
+      "date": "2026-04-25",
+      "budgetMain": "76000",
+      "budgetSub": "33000",
+      "spentMain": "80000",
+      "spentSub": "42000",
+      "savedAmount": "0",
+      "dailyOverflow": "13000",
+      "penaltyAppliedFromYesterday": "0"
+    },
+    {
+      "id": "daily_food_2026_04_26",
+      "userId": "user_demo",
+      "date": "2026-04-26",
+      "budgetMain": "76000",
+      "budgetSub": "33000",
+      "spentMain": "65000",
+      "spentSub": "12000",
+      "savedAmount": "32000",
+      "dailyOverflow": "0",
+      "penaltyAppliedFromYesterday": "0"
+    }
+  ],
+  "weeklyRewards": [
+    {
+      "id": "reward_week_2026_03_30",
+      "userId": "user_demo",
+      "weekStart": "2026-03-30",
+      "weekEnd": "2026-04-05",
+      "accumulatedSavings": "95000",
+      "milestoneReached": "75k",
+      "isUnlocked": true,
+      "unlockedAt": "2026-04-05T22:00:00.000Z",
+      "pointsEarned": 35
+    },
+    {
+      "id": "reward_week_2026_04_06",
+      "userId": "user_demo",
+      "weekStart": "2026-04-06",
+      "weekEnd": "2026-04-12",
+      "accumulatedSavings": "120000",
+      "milestoneReached": "100k",
+      "isUnlocked": true,
+      "unlockedAt": "2026-04-12T21:00:00.000Z",
+      "pointsEarned": 45
+    },
+    {
+      "id": "reward_week_2026_04_13",
+      "userId": "user_demo",
+      "weekStart": "2026-04-13",
+      "weekEnd": "2026-04-19",
+      "accumulatedSavings": "88000",
+      "milestoneReached": "75k",
+      "isUnlocked": true,
+      "unlockedAt": "2026-04-19T20:30:00.000Z",
+      "pointsEarned": 30
+    },
+    {
+      "id": "reward_week_2026_04_20",
+      "userId": "user_demo",
+      "weekStart": "2026-04-20",
+      "weekEnd": "2026-04-26",
+      "accumulatedSavings": "180000",
+      "milestoneReached": "150k",
+      "isUnlocked": false,
+      "unlockedAt": null,
+      "pointsEarned": 70
+    }
+  ],
+  "rewardPoints": {
+    "id": "points_demo",
+    "userId": "user_demo",
+    "total": 420,
+    "multiplier": "1.00",
+    "updatedAt": "2026-04-26T00:00:00.000Z"
+  },
+  "overflows": [
+    {
+      "id": "overflow_000",
+      "userId": "user_demo",
+      "transactionId": "tx_level_1_0403",
+      "eventDate": "2026-04-03",
+      "overflowLevel": "level_1",
+      "overflowAmount": "7000",
+      "sourceFundType": "food",
+      "borrowedFromFundType": null,
+      "repaidAmount": "0",
+      "status": "repaid",
+      "penaltyApplied": {
+        "penaltyPerDay": "259",
+        "daysAffected": 27
+      }
+    },
+    {
+      "id": "overflow_000b",
+      "userId": "user_demo",
+      "transactionId": "tx_level_2_0410",
+      "eventDate": "2026-04-10",
+      "overflowLevel": "level_2",
+      "overflowAmount": "54000",
+      "sourceFundType": "food",
+      "borrowedFromFundType": "experience",
+      "repaidAmount": "0",
+      "status": "pending",
+      "penaltyApplied": null
+    },
+    {
+      "id": "overflow_001",
+      "userId": "user_demo",
+      "transactionId": "tx_overspend",
+      "eventDate": "2026-04-22",
+      "overflowLevel": "level_3",
+      "overflowAmount": "1891000",
+      "sourceFundType": "food",
+      "borrowedFromFundType": "future",
+      "repaidAmount": "0",
+      "status": "pending",
+      "penaltyApplied": {
+        "lockWeeklyChest": true,
+        "multiplierDeduction": 0.1,
+        "previousMultiplier": 1,
+        "newMultiplier": 0.9,
+        "borrowedAmount": "1891000"
+      }
+    },
+    {
+      "id": "overflow_002",
+      "userId": "user_demo",
+      "transactionId": "tx_level_1_demo",
+      "eventDate": "2026-04-25",
+      "overflowLevel": "level_1",
+      "overflowAmount": "13000",
+      "sourceFundType": "food",
+      "borrowedFromFundType": null,
+      "repaidAmount": "0",
+      "status": "repaid",
+      "penaltyApplied": {
+        "penaltyPerDay": "2600",
+        "daysAffected": 5
+      }
+    }
+  ],
+  "aiLogs": [
+    {
+      "id": "ai_log_pending",
+      "userId": "user_demo",
+      "transactionId": null,
+      "rawInput": "tra da 10k",
+      "parsedEntity": "tra da",
+      "parsedAmount": "10000",
+      "parsedCategory": "Food and Drinks",
+      "userCorrection": null,
+      "createdAt": "2026-04-26T08:00:00.000Z"
+    },
+    {
+      "id": "ai_log_confirmed",
+      "userId": "user_demo",
+      "transactionId": "tx_001",
+      "rawInput": "bun cha 65k",
+      "parsedEntity": "bun cha",
+      "parsedAmount": "65000",
+      "parsedCategory": "Food and Drinks",
+      "userCorrection": null,
+      "createdAt": "2026-04-26T08:29:00.000Z"
+    }
+  ]
+}

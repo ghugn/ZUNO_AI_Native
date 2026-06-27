@@ -1,0 +1,11 @@
+'use client';
+
+import React from 'react';
+
+export default function PageTemplate({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="animate-fade-in flex-1 flex flex-col">
+      {children}
+    </div>
+  );
+}

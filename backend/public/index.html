@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZUNO - API Test Explorer</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-dark: #0b0f19;
+      --bg-card: #151d30;
+      --bg-input: #1e293b;
+      --border-color: #334155;
+      
+      --color-primary: #6366f1; /* Indigo */
+      --color-primary-hover: #4f46e5;
+      --color-success: #10b981; /* Emerald */
+      --color-warning: #f59e0b; /* Amber */
+      --color-danger: #ef4444;  /* Red */
+      --color-info: #06b6d4;    /* Cyan */
+      
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      
+      --font-outfit: 'Outfit', sans-serif;
+      --font-inter: 'Inter', sans-serif;
+      
+      --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-inter);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Scrollbar Styling */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-dark);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-muted);
+    }
+
+    /* Header */
+    header {
+      background: linear-gradient(90deg, #151d30 0%, #0f172a 100%);
+      border-bottom: 1px solid var(--border-color);
+      padding: 0.75rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .logo-badge {
+      background: linear-gradient(135deg, var(--color-primary) 0%, #a855f7 100%);
+      color: white;
+      font-family: var(--font-outfit);
+      font-weight: 700;
+      font-size: 1.25rem;
+      width: 38px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+    }
+
+    .logo-text h1 {
+      font-family: var(--font-outfit);
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .logo-text span {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .auth-status {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      background: rgba(30, 41, 59, 0.6);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+    }
+
+    .token-indicator {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--color-danger);
+    }
+
+    .token-indicator.active {
+      background-color: var(--color-success);
+      box-shadow: 0 0 8px var(--color-success);
+    }
+
+    .token-input-group {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .token-input-group input {
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 0.4rem 0.6rem;
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 0.8rem;
+      width: 250px;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .token-input-group input:focus {
+      border-color: var(--color-primary);
+    }
+
+    .btn {
+      background: var(--color-primary);
+      color: white;
+      border: none;
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .btn:hover {
+      background: var(--color-primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-input);
+    }
+
+    /* Main Grid */
+    main {
+      display: grid;
+      grid-template-columns: 320px 1fr 1fr;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* Left Sidebar: API List */
+    .sidebar {
+      background-color: #0e1424;
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .sidebar-section {
+      padding: 1rem;
+      border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+    }
+
+    .section-title {
+      font-family: var(--font-outfit);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+
+    .api-item {
+      display: flex;
+      align-items: center;
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-bottom: 0.25rem;
+      transition: all 0.2s;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+    }
+
+    .api-item:hover {
+      background-color: rgba(30, 41, 59, 0.5);
+    }
+
+    .api-item.active {
+      background-color: rgba(99, 102, 241, 0.15);
+      border-left: 3px solid var(--color-primary);
+    }
+
+    .method {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      width: 55px;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .method.post {
+      background-color: rgba(16, 185, 129, 0.15);
+      color: var(--color-success);
+    }
+
+    .method.get {
+      background-color: rgba(6, 182, 212, 0.15);
+      color: var(--color-info);
+    }
+
+    .method.put {
+      background-color: rgba(245, 158, 11, 0.15);
+      color: var(--color-warning);
+    }
+
+    .method.delete {
+      background-color: rgba(239, 68, 68, 0.15);
+      color: var(--color-danger);
+    }
+
+    .api-name {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: #e2e8f0;
+    }
+
+    /* Center: Request Builder */
+    .request-panel {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      overflow-y: auto;
+      border-right: 1px solid var(--border-color);
+      background-color: #0f172a;
+    }
+
+    .panel-header {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .api-title {
+      font-family: var(--font-outfit);
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .api-desc {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .endpoint-badge {
+      display: flex;
+      align-items: center;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0.6rem 0.8rem;
+      font-family: monospace;
+      font-size: 0.9rem;
+      gap: 0.75rem;
+    }
+
+    .endpoint-badge .url-text {
+      color: #e2e8f0;
+      word-break: break-all;
+    }
+
+    .params-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1rem;
+    }
+
+    .section-subtitle {
+      font-family: var(--font-outfit);
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .input-field {
+      margin-bottom: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .input-field label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .input-field input, .input-field select {
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      outline: none;
+      font-size: 0.9rem;
+    }
+
+    .input-field input:focus, .input-field select:focus {
+      border-color: var(--color-primary);
+    }
+
+    .payload-editor {
+      width: 100%;
+      height: 250px;
+      background: #090d16;
+      border: 1px solid var(--border-color);
+      color: #38bdf8; /* light blue */
+      font-family: monospace;
+      padding: 0.75rem;
+      border-radius: 6px;
+      resize: vertical;
+      outline: none;
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+
+    .payload-editor:focus {
+      border-color: var(--color-primary);
+    }
+
+    .send-action {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 0.5rem;
+    }
+
+    /* Right: Response Panel */
+    .response-panel {
+      padding: 1.5rem;
+      background-color: #0c101b;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .resp-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .resp-status {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .status-badge {
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+
+    .status-badge.success {
+      background-color: rgba(16, 185, 129, 0.15);
+      color: var(--color-success);
+    }
+
+    .status-badge.error {
+      background-color: rgba(239, 68, 68, 0.15);
+      color: var(--color-danger);
+    }
+
+    .time-badge {
+      color: var(--text-muted);
+      font-family: monospace;
+    }
+
+    .response-body-wrapper {
+      flex: 1;
+      background-color: #070a12;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1rem;
+      overflow-y: auto;
+      font-family: monospace;
+      font-size: 0.85rem;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .response-body-wrapper.success {
+      color: #34d399; /* Emerald green JSON tint */
+    }
+
+    .response-body-wrapper.error {
+      color: #f87171; /* red-400 */
+    }
+
+    .placeholder-text {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      font-family: var(--font-inter);
+      font-size: 0.9rem;
+    }
+
+    /* Auth lock badge */
+    .lock-badge {
+      background-color: rgba(245, 158, 11, 0.15);
+      color: var(--color-warning);
+      font-size: 0.7rem;
+      padding: 0.1rem 0.35rem;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    /* Quick helper tools at bottom of sidebar */
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 1rem;
+      background-color: rgba(15, 23, 42, 0.4);
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .sidebar-footer p {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    .btn-block {
+      width: 100%;
+      text-align: center;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="logo-container">
+      <div class="logo-badge">Z</div>
+      <div class="logo-text">
+        <h1>ZUNO API Explorer</h1>
+        <span>Môi trường thử nghiệm API & Database</span>
+      </div>
+    </div>
+
+    <div class="auth-status">
+      <div class="token-input-group">
+        <span id="indicator" class="token-indicator"></span>
+        <label for="tokenVal" style="font-size: 0.8rem; color: var(--text-muted)">JWT Token:</label>
+        <input type="text" id="tokenVal" placeholder="Chưa đăng nhập..." readonly>
+        <button class="btn btn-secondary" onclick="pasteToken()" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">Dán nhanh</button>
+        <button class="btn btn-secondary" onclick="clearToken()" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; color: var(--color-danger); border-color: rgba(239,68,68,0.3)">Xóa</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main>
+    <!-- Left Sidebar: API Lists -->
+    <div class="sidebar">
+      <!-- Auth Section -->
+      <div class="sidebar-section">
+        <div class="section-title">1. Authentication & Profile</div>
+        <div class="api-item" onclick="selectApi('auth-register')">
+          <span class="method post">post</span>
+          <span class="api-name">Đăng ký tài khoản</span>
+        </div>
+        <div class="api-item" onclick="selectApi('auth-login')">
+          <span class="method post">post</span>
+          <span class="api-name">Đăng nhập</span>
+        </div>
+        <div class="api-item" onclick="selectApi('auth-me')">
+          <span class="method get">get</span>
+          <span class="api-name">Lấy User hiện tại</span>
+          <span class="lock-badge">🔒</span>
+        </div>
+        <div class="api-item" onclick="selectApi('profile-create')">
+          <span class="method post">post</span>
+          <span class="api-name">Tạo Profile (Onboarding)</span>
+          <span class="lock-badge">🔒</span>
+        </div>
+        <div class="api-item" onclick="selectApi('profile-get')">
+          <span class="method get">get</span>
+          <span class="api-name">Lấy Profile</span>
+          <span class="lock-badge">🔒</span>
+        </div>
+        <div class="api-item" onclick="selectApi('profile-update')">
+          <span class="method put">put</span>
+          <span class="api-name">Cập nhật Profile</span>
+          <span class="lock-badge">🔒</span>
+        </div>
+        <div class="api-item" onclick="selectApi('profile-complete')">
+          <span class="method post">post</span>
+          <span class="api-name">Hoàn tất Onboarding</span>
+          <span class="lock-badge">🔒</span>
+        </div>
+      </div>
+
+      <!-- Funds Section -->
+      <div class="sidebar-section">
+        <div class="section-title">2. Quỹ tài chính (Funds)</div>
+        <div class="api-item" onclick="selectApi('funds-templates')">
+          <span class="method get">get</span>
+          <span class="api-name">Xem Templates gợi ý</span>
+          <span class="lock-badge">🔒</span>
+        </div>
+        <div class="api-item" onclick="selectApi('funds-create')">
+          <span class="method post">post</span>
+          <span class="api-name">Khởi tạo 5 Quỹ tháng mới</span>
+          <span class="lock-badge">🔒</span>
+        </div>
+        <div class="api-item" onclick="selectApi('funds-list')">
+          <span class="method get">get</span>
+          <span class="api-name">Danh sách Quỹ tháng</span>
+          <span class="lock-badge">🔒</span>
+        </div>
+      </div>
+
+      <!-- Tags & Transactions Section -->
+      <div class="sidebar-section">
+        <div class="section-title">3. Tags & Transactions</div>
+        <div class="api-item" onclick="selectApi('tags-list')">
+          <span class="method get">get</span>
+          <span class="api-name">Lấy toàn bộ Tags</span>
+          <span class="lock-badge">🔒</span>
+        </div>
+        <div class="api-item" onclick="selectApi('tags-create')">
+          <span class="method post">post</span>
+          <span class="api-name">Tạo Tag tự chọn</span>
+          <span class="lock-badge">🔒</span>
+        </div>
+        <div class="api-item" onclick="selectApi('transaction-create')">
+          <span class="method post">post</span>
+          <span class="api-name">Tạo giao dịch mới</span>
+          <span class="lock-badge">🔒</span>
+        </div>
+        <div class="api-item" onclick="selectApi('transaction-list')">
+          <span class="method get">get</span>
+          <span class="api-name">Lấy Giao dịch tháng</span>
+          <span class="lock-badge">🔒</span>
+        </div>
+      </div>
+
+      <!-- Daily Food & Gamifications -->
+      <div class="sidebar-section">
+        <div class="section-title">4. Daily Food & Gamifications</div>
+        <div class="api-item" onclick="selectApi('daily-food-bulk')">
+          <span class="method post">post</span>
+          <span class="api-name">Bulk tạo ngân sách ăn</span>
+          <span class="lock-badge">🔒</span>
+        </div>
+        <div class="api-item" onclick="selectApi('daily-food-get')">
+          <span class="method get">get</span>
+          <span class="api-name">Ngân sách ăn theo ngày</span>
+          <span class="lock-badge">🔒</span>
+        </div>
+        <div class="api-item" onclick="selectApi('rewards-points')">
+          <span class="method get">get</span>
+          <span class="api-name">Tổng điểm & Multiplier</span>
+          <span class="lock-badge">🔒</span>
+        </div>
+        <div class="api-item" onclick="selectApi('overflows-pending')">
+          <span class="method get">get</span>
+          <span class="api-name">Các khoản lố chờ trả</span>
+          <span class="lock-badge">🔒</span>
+        </div>
+        <div class="api-item" onclick="selectApi('ai-logs-create')">
+          <span class="method post">post</span>
+          <span class="api-name">Tạo log parse AI</span>
+          <span class="lock-badge">🔒</span>
+        </div>
+      </div>
+
+      <!-- Sidebar Footer Info -->
+      <div class="sidebar-footer">
+        <p>Được xây dựng cho ZUNO App</p>
+        <p style="font-size: 0.65rem; color: #64748b;">Phiên bản 1.0 (Development Mode)</p>
+      </div>
+    </div>
+
+    <!-- Center: Request Builder -->
+    <div class="request-panel">
+      <div id="welcome-request" style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 1rem; color: var(--text-muted)">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-primary)">
+          <polyline points="16 18 22 12 16 6"></polyline>
+          <polyline points="8 6 2 12 8 18"></polyline>
+        </svg>
+        <h3>Vui lòng chọn một API ở thanh bên</h3>
+        <p style="max-width: 260px; font-size: 0.85rem;">Mỗi API đã được điền sẵn Mock Data mẫu để bạn chạy thử nhanh mà không cần gõ thủ công.</p>
+      </div>
+
+      <div id="active-request" style="display: none; height: 100%;">
+        <div class="panel-header">
+          <div class="api-title" id="req-title">Đăng ký tài khoản</div>
+          <div class="api-desc" id="req-desc">Tạo tài khoản sinh viên mới để bắt đầu sử dụng ZUNO.</div>
+        </div>
+
+        <div class="endpoint-badge" style="margin-top: 1rem;">
+          <span id="req-method-badge" class="method post">post</span>
+          <span class="url-text" id="req-url">/api/auth/register</span>
+        </div>
+
+        <!-- Path/Query parameters if any -->
+        <div class="params-section" id="query-params-section" style="display: none; margin-top: 1rem;">
+          <div class="section-subtitle">Parameters</div>
+          <div id="query-params-list">
+            <!-- Dynamic parameters insert here -->
+          </div>
+        </div>
+
+        <!-- Request Body Section -->
+        <div class="params-section" id="body-section" style="margin-top: 1rem; display: flex; flex-direction: column; flex: 1;">
+          <div class="section-subtitle">
+            <span>JSON Request Body</span>
+            <button class="btn btn-secondary" onclick="restoreMockData()" style="padding: 0.15rem 0.5rem; font-size: 0.75rem;">Reset Dữ Liệu</button>
+          </div>
+          <textarea id="req-body" class="payload-editor"></textarea>
+        </div>
+
+        <div class="send-action">
+          <span id="auth-warn-text" style="font-size: 0.8rem; color: var(--color-warning); display: none;">⚠️ API này yêu cầu đăng nhập trước!</span>
+          <span></span>
+          <button class="btn" id="btn-send" onclick="executeRequest()" style="padding: 0.6rem 1.5rem; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;">
+            <span>GỬI REQUEST</span>
+            <span id="spinner" style="display:none; width:12px; height:12px; border:2px solid #fff; border-radius:50%; border-top-color:transparent; animation:spin 0.6s linear infinite;"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Response Viewer -->
+    <div class="response-panel">
+      <div class="resp-header">
+        <h3 style="font-family: var(--font-outfit); font-size: 1.1rem;">Response</h3>
+        <div class="resp-status" id="resp-status-container" style="display: none;">
+          <span class="status-badge" id="resp-status">200 OK</span>
+          <span class="time-badge" id="resp-time">12ms</span>
+        </div>
+      </div>
+
+      <div class="response-body-wrapper" id="response-viewer">
+        <div class="placeholder-text">
+          Chưa có request nào được gửi. Kết quả trả về sẽ hiển thị tại đây.
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <style>
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+
+  <script>
+    // Toàn bộ định nghĩa API
+    const apiSpecs = {
+      'auth-register': {
+        title: 'Đăng ký tài khoản',
+        desc: 'Đăng ký một tài khoản sinh viên mới trên hệ thống.',
+        method: 'POST',
+        url: '/api/auth/register',
+        requiresAuth: false,
+        params: [],
+        body: {
+          email: "testuser@gmail.com",
+          password: "Password123",
+          fullName: "Nguyễn Văn Sinh Viên"
+        }
+      },
+      'auth-login': {
+        title: 'Đăng nhập',
+        desc: 'Đăng nhập và nhận JWT Token. Sau khi nhận, token sẽ tự động được lưu vào trình duyệt của bạn cho các request sau.',
+        method: 'POST',
+        url: '/api/auth/login',
+        requiresAuth: false,
+        params: [],
+        body: {
+          email: "testuser@gmail.com",
+          password: "Password123"
+        }
+      },
+      'auth-me': {
+        title: 'Lấy thông tin tài khoản hiện tại',
+        desc: 'Xác thực JWT Token trong Header và lấy thông tin cá nhân của User hiện tại.',
+        method: 'GET',
+        url: '/api/auth/me',
+        requiresAuth: true,
+        params: [],
+        body: null
+      },
+      'profile-create': {
+        title: 'Khởi tạo Profile (Onboarding)',
+        desc: 'Tạo hồ sơ tài chính sinh viên. Chọn thuê trọ (rent) hoặc ở ký túc xá (dorm) và khai báo thu nhập tháng.',
+        method: 'POST',
+        url: '/api/profile',
+        requiresAuth: true,
+        params: [],
+        body: {
+          residenceType: "rent",
+          bankBalance: 4500000,
+          dormPaidSemester: false,
+          hasFoodFromFamily: false
+        }
+      },
+      'profile-get': {
+        title: 'Lấy thông tin Profile',
+        desc: 'Lấy hồ sơ tài chính cá nhân của user đang đăng nhập.',
+        method: 'GET',
+        url: '/api/profile',
+        requiresAuth: true,
+        params: [],
+        body: null
+      },
+      'profile-update': {
+        title: 'Cập nhật Profile',
+        desc: 'Cập nhật hồ sơ tài chính sinh viên (ví dụ thay đổi thu nhập tháng, đổi loại trọ).',
+        method: 'PUT',
+        url: '/api/profile',
+        requiresAuth: true,
+        params: [],
+        body: {
+          residenceType: "rent",
+          bankBalance: 5000000,
+          dormPaidSemester: false,
+          hasFoodFromFamily: false
+        }
+      },
+      'profile-complete': {
+        title: 'Xác nhận hoàn tất Onboarding',
+        desc: 'Cập nhật trạng thái đánh dấu user đã hoàn thành khảo sát onboarding.',
+        method: 'POST',
+        url: '/api/profile/complete-onboarding',
+        requiresAuth: true,
+        params: [],
+        body: null
+      },
+      'funds-templates': {
+        title: 'Lấy Fund Templates',
+        desc: 'Lấy danh sách các template phân bổ quỹ định trước dựa trên loại cư trú (rent hoặc dorm).',
+        method: 'GET',
+        url: '/api/funds/templates',
+        requiresAuth: true,
+        params: [
+          { name: 'residenceType', label: 'Residence Type', type: 'select', options: ['rent', 'dorm'], default: 'rent' }
+        ],
+        body: null
+      },
+      'funds-create': {
+        title: 'Khởi tạo 5 Quỹ tháng mới',
+        desc: 'Tự động tạo ra 5 quỹ tài chính cho tháng mới dựa theo tỷ lệ gợi ý và mức thu nhập hàng tháng trong Profile.',
+        method: 'POST',
+        url: '/api/funds',
+        requiresAuth: true,
+        params: [],
+        body: {
+          month: new Date().toISOString().substring(0, 7) + "-01T00:00:00.000Z",
+          bankBalance: 5000000,
+          residenceType: "rent"
+        }
+      },
+      'funds-list': {
+        title: 'Lấy danh sách Quỹ theo tháng',
+        desc: 'Xem tình trạng số dư, hạn mức và số tiền đã chi của 5 quỹ trong tháng chỉ định.',
+        method: 'GET',
+        url: '/api/funds',
+        requiresAuth: true,
+        params: [
+          { name: 'month', label: 'Tháng (YYYY-MM-01)', type: 'text', default: new Date().toISOString().substring(0, 7) + "-01T00:00:00.000Z" }
+        ],
+        body: null
+      },
+      'tags-list': {
+        title: 'Lấy tất cả danh sách Tags',
+        desc: 'Xem tất cả các tag chi tiêu (của hệ thống và tự tạo) hỗ trợ cho việc phân loại giao dịch.',
+        method: 'GET',
+        url: '/api/tags',
+        requiresAuth: true,
+        params: [],
+        body: null
+      },
+      'tags-create': {
+        title: 'Tạo Tag chi tiêu tự chọn',
+        desc: 'Cho phép sinh viên tạo thêm các thẻ/tag chi tiêu tùy biến thuộc một trong 5 nhóm quỹ.',
+        method: 'POST',
+        url: '/api/tags',
+        requiresAuth: true,
+        params: [],
+        body: {
+          name: "Trà sữa Highlands",
+          fundType: "experience",
+          iconUrl: "https://example.com/icons/milktea.png"
+        }
+      },
+      'transaction-create': {
+        title: 'Tạo giao dịch mới',
+        desc: 'Thêm giao dịch thu nhập, chi tiêu, hoặc chuyển quỹ. Số dư trong quỹ liên quan sẽ tự động thay đổi tương ứng.',
+        method: 'POST',
+        url: '/api/transactions',
+        requiresAuth: true,
+        params: [],
+        body: {
+          fundId: "LẤY_FUND_ID_TỪ_DANH_SÁCH_QUỸ_VÀ_DÁN_VÀO_ĐÂY",
+          amount: 35000,
+          transactionType: "expense",
+          category: "Ăn uống",
+          description: "Ăn trưa cơm bình dân",
+          inputMethod: "manual",
+          mealType: "main",
+          transactionDate: new Date().toISOString()
+        }
+      },
+      'transaction-list': {
+        title: 'Danh sách giao dịch theo tháng',
+        desc: 'Lấy toàn bộ lịch sử thu/chi của user trong tháng cụ thể.',
+        method: 'GET',
+        url: '/api/transactions',
+        requiresAuth: true,
+        params: [
+          { name: 'month', label: 'Tháng (YYYY-MM-01)', type: 'text', default: new Date().toISOString().substring(0, 7) + "-01T00:00:00.000Z" }
+        ],
+        body: null
+      },
+      'daily-food-bulk': {
+        title: 'Bulk tạo ngân sách ăn cả tháng',
+        desc: 'Dựa trên số tiền trong Quỹ Ăn Uống (food) của tháng, tự động chia đều ngân sách ra từng ngày.',
+        method: 'POST',
+        url: '/api/daily-food/bulk',
+        requiresAuth: true,
+        params: [],
+        body: {
+          month: new Date().toISOString().substring(0, 7) + "-01T00:00:00.000Z",
+          budgetMain: 50000,
+          budgetSub: 20000
+        }
+      },
+      'daily-food-get': {
+        title: 'Lấy ngân sách ăn của một ngày',
+        desc: 'Xem ngân sách bữa chính, bữa phụ và mức tích lũy được trong một ngày nhất định.',
+        method: 'GET',
+        url: '/api/daily-food',
+        requiresAuth: true,
+        params: [
+          { name: 'date', label: 'Ngày cần xem (YYYY-MM-DD)', type: 'text', default: new Date().toISOString().substring(0, 10) + "T00:00:00.000Z" }
+        ],
+        body: null
+      },
+      'rewards-points': {
+        title: 'Lấy tổng điểm thưởng & hệ số nhân',
+        desc: 'Kiểm tra điểm tích lũy hiện tại và hệ số nhân điểm (multiplier) dùng cho các tính năng gamification.',
+        method: 'GET',
+        url: '/api/rewards/points',
+        requiresAuth: true,
+        params: [],
+        body: null
+      },
+      'overflows-pending': {
+        title: 'Lấy các sự kiện lố chưa trả',
+        desc: 'Xem các khoản chi tiêu bị vượt hạn mức (Lố cấp 1/2/3) đang chờ trả nợ hoặc bù quỹ.',
+        method: 'GET',
+        url: '/api/overflows/pending',
+        requiresAuth: true,
+        params: [],
+        body: null
+      },
+      'ai-logs-create': {
+        title: 'Tạo nhật ký parse AI NLP',
+        desc: 'Mô phỏng nhật ký log khi người dùng gõ câu lệnh chat (ví dụ: "Ăn phở 40k") để lưu log phân tích từ AI.',
+        method: 'POST',
+        url: '/api/ai-logs',
+        requiresAuth: true,
+        params: [],
+        body: {
+          rawInput: "Ăn bún chả 45k",
+          parsedEntity: "bún chả",
+          parsedAmount: 45000,
+          parsedCategory: "food"
+        }
+      }
+    };
+
+    let activeKey = null;
+    let savedToken = localStorage.getItem('zuno_jwt_token') || '';
+    let testContext = JSON.parse(localStorage.getItem('zuno_test_context') || '{}');
+
+    // Khởi động giao diện
+    window.onload = function() {
+      updateTokenUI();
+    };
+
+    function selectApi(key) {
+      activeKey = key;
+      const spec = apiSpecs[key];
+
+      // Update sidebar active class
+      document.querySelectorAll('.api-item').forEach(item => item.classList.remove('active'));
+      
+      // Look for active item
+      const sidebarItems = document.querySelectorAll('.api-item');
+      for (let item of sidebarItems) {
+        if (item.getAttribute('onclick') === `selectApi('${key}')`) {
+          item.classList.add('active');
+          break;
+        }
+      }
+
+      // Show panel and fill info
+      document.getElementById('welcome-request').style.display = 'none';
+      document.getElementById('active-request').style.display = 'block';
+
+      document.getElementById('req-title').textContent = spec.title;
+      document.getElementById('req-desc').textContent = spec.desc;
+      document.getElementById('req-url').textContent = spec.url;
+      
+      const methodBadge = document.getElementById('req-method-badge');
+      methodBadge.textContent = spec.method;
+      methodBadge.className = 'method ' + spec.method.toLowerCase();
+
+      // Show / hide Auth Warning
+      const authWarn = document.getElementById('auth-warn-text');
+      if (spec.requiresAuth && !savedToken) {
+        authWarn.style.display = 'block';
+      } else {
+        authWarn.style.display = 'none';
+      }
+
+      // Populate Query parameters
+      const paramsSection = document.getElementById('query-params-section');
+      const paramsList = document.getElementById('query-params-list');
+      paramsList.innerHTML = '';
+      
+      if (spec.params && spec.params.length > 0) {
+        paramsSection.style.display = 'block';
+        spec.params.forEach(p => {
+          const field = document.createElement('div');
+          field.className = 'input-field';
+          
+          const label = document.createElement('label');
+          label.textContent = p.label;
+          field.appendChild(label);
+          
+          if (p.type === 'select') {
+            const select = document.createElement('select');
+            select.id = `param-${p.name}`;
+            p.options.forEach(opt => {
+              const option = document.createElement('option');
+              option.value = opt;
+              option.textContent = opt;
+              if (opt === p.default) option.selected = true;
+              select.appendChild(option);
+            });
+            field.appendChild(select);
+          } else {
+            const input = document.createElement('input');
+            input.id = `param-${p.name}`;
+            input.type = 'text';
+            
+            // Evaluated dynamic parameter values
+            let val = p.default || '';
+            if (p.name === 'month') {
+              val = new Date().toISOString().substring(0, 7) + "-01T00:00:00.000Z";
+            } else if (p.name === 'date') {
+              val = new Date().toISOString().substring(0, 10) + "T00:00:00.000Z";
+            }
+            
+            input.value = val;
+            field.appendChild(input);
+          }
+          paramsList.appendChild(field);
+        });
+      } else {
+        paramsSection.style.display = 'none';
+      }
+
+      // Populate Request Body
+      const bodySection = document.getElementById('body-section');
+      const reqBody = document.getElementById('req-body');
+      
+      if (spec.body) {
+        bodySection.style.display = 'flex';
+        
+        // Deep clone spec.body so we don't overwrite static definitions
+        let resolvedBody = JSON.parse(JSON.stringify(spec.body));
+        
+        // Resolve dynamic dates to match current time
+        if (resolvedBody.transactionDate !== undefined) {
+          resolvedBody.transactionDate = new Date().toISOString();
+        }
+        if (resolvedBody.month !== undefined) {
+          resolvedBody.month = new Date().toISOString().substring(0, 7) + "-01T00:00:00.000Z";
+        }
+
+        // Auto-link Profile info into Funds creation
+        if (key === 'funds-create') {
+          if (testContext.bankBalance) {
+            resolvedBody.bankBalance = Number(testContext.bankBalance);
+          }
+          if (testContext.residenceType) {
+            resolvedBody.residenceType = testContext.residenceType;
+          }
+        }
+
+        // Pre-fill Profile info for Profile update
+        if (key === 'profile-update') {
+          if (testContext.bankBalance) {
+            resolvedBody.bankBalance = Number(testContext.bankBalance);
+          }
+          if (testContext.residenceType) {
+            resolvedBody.residenceType = testContext.residenceType;
+          }
+        }
+
+        // Auto-link Fund ID into Transaction creation
+        if (key === 'transaction-create') {
+          if (testContext.funds) {
+            // Check if there is a food fund since category is "Ăn uống"
+            if (testContext.funds.food) {
+              resolvedBody.fundId = testContext.funds.food;
+            } else {
+              // Fallback to first available fund ID
+              const firstId = Object.values(testContext.funds)[0];
+              if (firstId) resolvedBody.fundId = firstId;
+            }
+          }
+        }
+
+        // Compute daily food bulk budgets based on income if available
+        if (key === 'daily-food-bulk') {
+          if (testContext.bankBalance) {
+            // Assuming 30% goes to food fund
+            const totalFoodBudget = Number(testContext.bankBalance) * 0.3;
+            const dailyBudget = Math.round(totalFoodBudget / 30);
+            
+            // Allocate 70% to main budget and 30% to sub budget
+            resolvedBody.budgetMain = Math.round(dailyBudget * 0.7 / 1000) * 1000;
+            resolvedBody.budgetSub = Math.round(dailyBudget * 0.3 / 1000) * 1000;
+            
+            // Ensure sensible minimums
+            if (resolvedBody.budgetMain < 10000) resolvedBody.budgetMain = 35000;
+            if (resolvedBody.budgetSub < 5000) resolvedBody.budgetSub = 15000;
+          }
+        }
+        
+        reqBody.value = JSON.stringify(resolvedBody, null, 2);
+      } else {
+        bodySection.style.display = 'none';
+        reqBody.value = '';
+      }
+    }
+
+    function restoreMockData() {
+      if (!activeKey) return;
+      // Re-trigger selectApi to rebuild body using current testContext
+      selectApi(activeKey);
+    }
+
+    // Gửi HTTP Request tới backend
+    async function executeRequest() {
+      if (!activeKey) return;
+      const spec = apiSpecs[activeKey];
+      
+      // Update UI state
+      document.getElementById('spinner').style.display = 'inline-block';
+      const btnSend = document.getElementById('btn-send');
+      btnSend.disabled = true;
+      
+      // Setup URL and parameters
+      let targetUrl = spec.url;
+      if (spec.params && spec.params.length > 0) {
+        const queryParts = [];
+        spec.params.forEach(p => {
+          const val = document.getElementById(`param-${p.name}`).value;
+          queryParts.push(`${p.name}=${encodeURIComponent(val)}`);
+        });
+        if (queryParts.length > 0) {
+          targetUrl += `?${queryParts.join('&')}`;
+        }
+      }
+
+      // Headers setup
+      const headers = {
+        'Content-Type': 'application/json'
+      };
+      if (spec.requiresAuth && savedToken) {
+        headers['Authorization'] = `Bearer ${savedToken}`;
+      }
+
+      // Payload setup
+      let bodyData = null;
+      if (spec.body) {
+        try {
+          bodyData = document.getElementById('req-body').value;
+          JSON.parse(bodyData); // Validate JSON format
+        } catch (e) {
+          showResponse({ error: 'Định dạng JSON Body không hợp lệ!' }, 400, 0, false);
+          document.getElementById('spinner').style.display = 'none';
+          btnSend.disabled = false;
+          return;
+        }
+      }
+
+      const startTime = performance.now();
+      try {
+        const fetchOptions = {
+          method: spec.method,
+          headers: headers
+        };
+        if (bodyData) {
+          fetchOptions.body = bodyData;
+        }
+
+        const response = await fetch(targetUrl, fetchOptions);
+        const duration = Math.round(performance.now() - startTime);
+        const data = await response.json();
+
+        // Tự động lưu Token nếu đăng nhập thành công
+        if (activeKey === 'auth-login' && response.status === 200 && data.token) {
+          saveToken(data.token);
+        }
+
+        // Tự động liên kết dữ liệu dựa trên kết quả trả về
+        if (response.ok) {
+          handleAutomaticLinking(activeKey, data);
+        }
+
+        showResponse(data, response.status, duration, response.ok);
+      } catch (err) {
+        const duration = Math.round(performance.now() - startTime);
+        showResponse({ message: 'Không thể kết nối đến backend. Hãy kiểm tra xem server đã chạy chưa (npm run dev)?', details: err.message }, 500, duration, false);
+      } finally {
+        document.getElementById('spinner').style.display = 'none';
+        btnSend.disabled = false;
+      }
+    }
+
+    function handleAutomaticLinking(key, data) {
+      if (!data) return;
+      let changed = false;
+
+      // 1. Lưu thông tin Profile để điền vào khởi tạo quỹ
+      if (key === 'profile-create' || key === 'profile-get' || key === 'profile-update') {
+        if (data.bankBalance !== undefined) {
+          testContext.bankBalance = data.bankBalance;
+          changed = true;
+        }
+        if (data.residenceType !== undefined) {
+          testContext.residenceType = data.residenceType;
+          changed = true;
+        }
+      }
+
+      // 2. Lưu danh sách quỹ
+      if (key === 'funds-list' && Array.isArray(data)) {
+        testContext.funds = {};
+        data.forEach(fund => {
+          if (fund.fundType && fund.id) {
+            testContext.funds[fund.fundType] = fund.id;
+          }
+        });
+        changed = true;
+      }
+
+      if (changed) {
+        localStorage.setItem('zuno_test_context', JSON.stringify(testContext));
+      }
+    }
+
+    function showResponse(data, status, duration, isOk) {
+      const container = document.getElementById('resp-status-container');
+      const badge = document.getElementById('resp-status');
+      const time = document.getElementById('resp-time');
+      const viewer = document.getElementById('response-viewer');
+
+      container.style.display = 'flex';
+      badge.textContent = `${status} ${getStatusText(status)}`;
+      badge.className = `status-badge ${isOk ? 'success' : 'error'}`;
+      time.textContent = `${duration}ms`;
+
+      viewer.textContent = JSON.stringify(data, null, 2);
+      viewer.className = `response-body-wrapper ${isOk ? 'success' : 'error'}`;
+    }
+
+    function getStatusText(status) {
+      const map = {
+        200: 'OK', 210: 'Created', 201: 'Created', 204: 'No Content',
+        400: 'Bad Request', 401: 'Unauthorized', 403: 'Forbidden', 404: 'Not Found',
+        500: 'Internal Server Error'
+      };
+      return map[status] || '';
+    }
+
+    // Quản lý Token
+    function updateTokenUI() {
+      const tokenInput = document.getElementById('tokenVal');
+      const indicator = document.getElementById('indicator');
+      const authWarn = document.getElementById('auth-warn-text');
+
+      if (savedToken) {
+        tokenInput.value = savedToken;
+        indicator.className = 'token-indicator active';
+        if (authWarn) authWarn.style.display = 'none';
+      } else {
+        tokenInput.value = '';
+        indicator.className = 'token-indicator';
+        if (authWarn && activeKey && apiSpecs[activeKey].requiresAuth) {
+          authWarn.style.display = 'block';
+        }
+      }
+    }
+
+    function saveToken(token) {
+      savedToken = token;
+      localStorage.setItem('zuno_jwt_token', token);
+      updateTokenUI();
+    }
+
+    function clearToken() {
+      savedToken = '';
+      localStorage.removeItem('zuno_jwt_token');
+      updateTokenUI();
+      showResponse({ message: 'Đã xóa JWT Token. Các request tiếp theo sẽ không gửi Authorization header.' }, 200, 0, true);
+    }
+
+    async function pasteToken() {
+      try {
+        const text = await navigator.clipboard.readText();
+        if (text && text.trim().length > 20) {
+          saveToken(text.trim());
+          showResponse({ message: 'Đã dán token thành công!' }, 200, 0, true);
+        } else {
+          alert('Nội dung Clipboard không giống một JWT Token hợp lệ.');
+        }
+      } catch (err) {
+        // Fallback prompt if clipboard access denied
+        const text = prompt('Dán chuỗi JWT Token vào đây:');
+        if (text) {
+          saveToken(text.trim());
+        }
+      }
+    }
+  </script>
+</body>
+</html>

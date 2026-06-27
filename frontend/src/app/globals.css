@@ -1,0 +1,104 @@
+@import "tailwindcss";
+
+:root {
+  /* ZUNO Figma Design Tokens */
+  --zuno-dark-blue: #112945;
+  --zuno-muted-blue: #4d78a8;
+  --zuno-text-secondary: #546982;
+  --zuno-bg-primary: #f7f8fa;
+  
+  /* Status Colors (From Figma Labels) */
+  --zuno-safe: #BFE6C3;     
+  --zuno-warning: #F4D58C;  
+  --zuno-alert: #E6A39C;    
+  --zuno-danger: #F7B8B8;   
+  
+  /* Layout Tokens */
+  --glass-shadow: 0px 10px 30px 0px rgba(0, 0, 20, 0.08);
+  --glass-shadow-darker: 0px 10px 30px 0px rgba(0, 0, 0, 0.25);
+  --header-height: 80px;
+  --nav-height: 58px;
+}
+
+@theme inline {
+  /* Đăng ký chính xác biến CSS vào hệ thống Tailwind v4 */
+  --color-bg-primary: var(--zuno-bg-primary);
+  --color-primary-1: #FFFFFF;
+  --color-primary-2: #000000;
+  --color-separation: #E3E3E3;
+  --color-button-inactive: #546982;
+  --color-icon-blue: #174F84;
+  --color-good: #BFE6C3;
+  --color-text-dark: #112945;
+  --color-alert-figma: #F4D58C;
+  --color-bad: #F7B8B8;
+  --color-current-day: #02577A;
+
+  --font-sf-rounded: "SF Compact Rounded", "SF Pro Rounded", ui-rounded, "Hiragino Maru Gothic ProN", "Quicksand", sans-serif;
+  --font-inter: "Inter", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+}
+
+@layer base {
+  body {
+    background-color: var(--zuno-bg-primary);
+    color: #000000;
+    font-family: var(--font-inter);
+    margin: 0;
+    -webkit-tap-highlight-color: transparent;
+    @apply antialiased;
+  }
+}
+
+/* Glassmorphism primitives */
+.glass-panel {
+  background: rgba(247, 248, 250, 0.82);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  box-shadow: var(--glass-shadow);
+}
+
+.font-amount {
+  font-family: var(--font-sf-rounded);
+  @apply font-bold tracking-tight;
+}
+
+/* Hide scrollbars but keep functionality */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Page Transition: Pure Premium Fade-In */
+@keyframes premiumFadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: premiumFadeIn 0.22s ease-out forwards;
+}
+
+/* Premium Shimmer Skeleton Loading */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.shimmer {
+  background: linear-gradient(90deg, #edf0f5 25%, #f7f8fa 50%, #edf0f5 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+}
+
+

@@ -1,0 +1,76 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Production build outputs
+dist/
+**/dist/
+dist-ssr/
+**/dist-ssr/
+build/
+**/build/
+out/
+**/out/
+
+# Env files (Contains secrets - DO NOT COMMIT)
+.env
+.env.*
+!.env.example
+!.env.sample
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.sample
+
+# Logs and diagnostics
+*.log
+**/*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+logs/
+**/logs/
+
+# Coverage directories (testing)
+coverage/
+**/coverage/
+.nyc_output/
+**/.nyc_output/
+
+# Editor configurations (VS Code, WebStorm, etc.)
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*.sw?
+
+# System Files (macOS & Windows)
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# SSH Keys & Certificates (NEVER commit these)
+*.pem
+*.key
+*.crt
+
+# Temp deploy files
+project.zip
+*.zip
+
+# Production env (chứa secrets thực tế)
+.env.production
+.env.production.example
+
+# Next.js build cache
+.next/
+

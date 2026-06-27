@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <title>ZUNO Budget Overflow Sequence Diagram</title>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      sequence: {
+        actorMargin: 240,  // Stretches columns horizontally
+        width: 240,        // Stretches actor boxes horizontally
+        boxMargin: 15,
+        boxTextMargin: 12,
+        noteMargin: 12,
+        messageMargin: 35,
+        mirrorActors: false,
+        useMaxWidth: true
+      },
+      themeVariables: {
+        background: '#ffffff',
+        primaryColor: '#e1effe',
+        primaryTextColor: '#1e429f',
+        primaryBorderColor: '#1e429f',
+        lineColor: '#4b5563',
+        noteBkgColor: '#fef9c3',
+        noteBorderColor: '#ca8a04',
+        noteTextColor: '#854d0e',
+        actorBkg: '#def7ec',
+        actorBorder: '#03543f',
+        actorTextColor: '#03543f',
+        activationBkgColor: '#bfdbfe',
+      }
+    });
+  </script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 10px;
+      background-color: #f3f4f6;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+      width: 98vw; /* Expand container width to full screen */
+      box-sizing: border-box;
+    }
+
+    /* Custom CSS to style SVG nodes for compact, color-coded boxes */
+    .mermaid svg {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+      max-width: 100% !important;
+      height: auto !important;
+    }
+    
+    /* Compact participant boxes */
+    g.actor rect {
+      height: 65px !important;
+      rx: 10px !important;
+      ry: 10px !important;
+      stroke-width: 2.5px !important;
+    }
+    
+    g.actor text {
+      font-size: 21px !important;
+      font-weight: 700 !important;
+    }
+
+    /* Boundary box color (Orange/Red) */
+    g.actor:nth-of-type(2) rect {
+      fill: #fff7ed !important;
+      stroke: #c2410c !important;
+    }
+    g.actor:nth-of-type(2) text {
+      fill: #9a3412 !important;
+    }
+    
+    /* Control box colors (Blue) */
+    g.actor:nth-of-type(3) rect, g.actor:nth-of-type(4) rect {
+      fill: #e0f2fe !important;
+      stroke: #0369a1 !important;
+    }
+    g.actor:nth-of-type(3) text, g.actor:nth-of-type(4) text {
+      fill: #0369a1 !important;
+    }
+    
+    /* Entity box colors (Grey/Database) */
+    g.actor:nth-of-type(5) rect {
+      fill: #f3f4f6 !important;
+      stroke: #374151 !important;
+    }
+    g.actor:nth-of-type(5) text {
+      fill: #374151 !important;
+    }
+    
+    /* Note styling */
+    rect.note {
+      rx: 8px !important;
+      ry: 8px !important;
+      stroke-width: 2px !important;
+    }
+    .noteText {
+      font-size: 20px !important;
+      font-weight: 600 !important;
+    }
+    
+    /* Messages styling */
+    .messageLine0, .messageLine1 {
+      stroke-width: 2.5px !important;
+    }
+    .messageText {
+      font-size: 21px !important;
+      font-weight: 600 !important;
+      fill: #111827 !important;
+    }
+
+    /* Loop/alt text styling */
+    .labelText, .loopText, .labelText text, .loopText text, .labelText tspan, .loopText tspan {
+      font-size: 19px !important;
+      font-weight: 700 !important;
+      fill: #374151 !important;
+    }
+
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <pre class="mermaid">
+sequenceDiagram
+    autonumber
+    actor SV as Sinh viên (User)
+    participant GD as GD Trang chủ / Giao dịch (Boundary)
+    participant CtrGD as Ctr Giao dịch (Control)
+    participant CtrLo as Ctr Xử lý Lố / Overflow Engine (Control)
+    participant EntDB as Entity Database / Prisma (Entity)
+
+    SV->>GD: Thực hiện giao dịch (tiêu lố ăn uống)
+    GD->>CtrGD: Gửi yêu cầu tạo giao dịch (Request)
+    
+    activate CtrGD
+    CtrGD->>EntDB: Ghi nhận & lưu thông tin giao dịch
+    activate EntDB
+    EntDB-->>CtrGD: Trạng thái lưu thành công
+    deactivate EntDB
+
+    CtrGD->>EntDB: Kiểm tra trạng thái ngân quỹ ăn uống
+    activate EntDB
+    EntDB-->>CtrGD: Ngân quỹ hiện tại (Đã tiêu lố ngân sách)
+    deactivate EntDB
+
+    alt Giao dịch gây chi tiêu lố ngân sách (overspent)
+        CtrGD->>CtrLo: Gọi xử lý lố: handleOverspending()
+        activate CtrLo
+        
+        CtrLo->>EntDB: Truy vấn thông tin cấu hình người dùng (Profile)
+        activate EntDB
+        EntDB-->>CtrLo: Trả về thông tin (residenceType: 'dorm')
+        deactivate EntDB
+        
+        %% --- LEVEL 1 ---
+        Note over CtrLo, EntDB: [LEVEL 1] Cắt giảm tiền ăn phụ các ngày còn lại trong tháng
+        CtrLo->>EntDB: Tìm các ngày còn lại trong tháng (DailyFoodSavings)
+        activate EntDB
+        EntDB-->>CtrLo: Trả về danh sách ngày
+        deactivate EntDB
+        
+        CtrLo->>EntDB: Trừ tiền ăn phụ (snack budget) của các ngày đó (tăng penalty)
+        activate EntDB
+        EntDB-->>CtrLo: Trạng thái cập nhật thành công
+        deactivate EntDB
+
+        %% --- Log & Notify ---
+        CtrLo->>EntDB: Lưu lịch sử lố (OverflowEvent) & tạo thông báo (Notification)
+        activate EntDB
+        EntDB-->>CtrLo: Trạng thái lưu thành công
+        deactivate EntDB
+        
+        CtrLo-->>CtrGD: Phản hồi kết quả xử lý (OverflowResult)
+        deactivate CtrLo
+    end
+
+    CtrGD-->>GD: Trả về kết quả giao dịch và thông tin lố quỹ
+    deactivate CtrGD
+    GD->>SV: Hiển thị giao dịch thành công & Cảnh báo lố (Soft Warning)
+    </pre>
+  </div>
+</body>
+
+</html>

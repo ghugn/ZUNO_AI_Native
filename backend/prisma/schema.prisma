@@ -1,0 +1,226 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String             @id @default(uuid())
+  email            String             @unique
+  passwordHash     String             @map("password_hash")
+  fullName         String             @map("full_name")
+  avatarUrl        String?            @map("avatar_url")
+  isActive         Boolean            @default(true) @map("is_active")
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @updatedAt @map("updated_at")
+  dailyFoodSavings DailyFoodSavings[]
+  funds            Fund[]
+  notifications    Notification[]
+  overflowEvents   OverflowEvent[]
+  rewardPoints     RewardPoints?
+  transactions     Transaction[]
+  profile          UserProfile?
+  weeklyRewards    WeeklyReward[]
+  personalWallet   PersonalWallet?
+
+  @@map("users")
+}
+
+model UserProfile {
+  id                  String   @id @default(uuid())
+  userId              String   @unique @map("user_id")
+  residenceType       String   @map("residence_type")
+  bankBalance         BigInt   @map("bank_balance")
+  bankAccountId       String?  @unique @map("bank_account_id")
+  dormPaidSemester    Boolean  @default(false) @map("dorm_paid_semester")
+  hasFoodFromFamily   Boolean  @default(false) @map("has_food_from_family")
+  onboardingCompleted Boolean  @default(false) @map("onboarding_completed")
+  createdAt           DateTime @default(now()) @map("created_at")
+  user                User     @relation(fields: [userId], references: [id])
+
+  @@map("user_profiles")
+}
+
+model FundTemplate {
+  id            String  @id @default(uuid())
+  name          String
+  residenceType String  @map("residence_type")
+  livingPct     Decimal @map("living_pct") @db.Decimal(5, 2)
+  foodPct       Decimal @map("food_pct") @db.Decimal(5, 2)
+  growthPct     Decimal @map("growth_pct") @db.Decimal(5, 2)
+  experiencePct Decimal @map("experience_pct") @db.Decimal(5, 2)
+  futurePct     Decimal @map("future_pct") @db.Decimal(5, 2)
+  isDefault     Boolean @default(false) @map("is_default")
+
+  @@map("fund_templates")
+}
+
+model Fund {
+  id               String         @id @default(uuid())
+  userId           String         @map("user_id")
+  month            DateTime       @db.Date
+  fundType         String         @map("fund_type")
+  allocatedAmount  BigInt         @map("allocated_amount")
+  spentAmount      BigInt         @default(0) @map("spent_amount")
+  customPercentage Decimal?       @map("custom_percentage") @db.Decimal(5, 2)
+  borrowAmount     BigInt         @default(0) @map("borrow_amount")
+  isLocked         Boolean        @default(false) @map("is_locked")
+  version          Int            @default(1)
+  createdAt        DateTime       @default(now()) @map("created_at")
+  updatedAt        DateTime       @updatedAt @map("updated_at")
+  snapshots        FundSnapshot[]
+  user             User           @relation(fields: [userId], references: [id])
+  transactions     Transaction[]
+
+  @@unique([userId, month, fundType])
+  @@map("funds")
+}
+
+model FundSnapshot {
+  id              String   @id @default(uuid())
+  fundId          String   @map("fund_id")
+  snapshotDate    DateTime @map("snapshot_date") @db.Date
+  remainingAmount BigInt   @map("remaining_amount")
+  dailyDripAmount BigInt   @default(0) @map("daily_drip_amount")
+  fund            Fund     @relation(fields: [fundId], references: [id])
+
+  @@map("fund_snapshots")
+}
+
+model Transaction {
+  id              String          @id @default(uuid())
+  userId          String          @map("user_id")
+  fundId          String          @map("fund_id")
+  amount          BigInt
+  transactionType String          @map("transaction_type")
+  category        String
+  description     String?
+  inputMethod     String          @default("manual") @map("input_method")
+  aiConfidence    Decimal?        @map("ai_confidence") @db.Decimal(4, 3)
+  isAiCorrected   Boolean         @default(false) @map("is_ai_corrected")
+  mealType        String?         @map("meal_type")
+  transactionDate DateTime        @map("transaction_date")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  aiParseLogs     AiParseLog[]
+  overflowEvents  OverflowEvent[]
+  fund            Fund            @relation(fields: [fundId], references: [id])
+  user            User            @relation(fields: [userId], references: [id])
+
+  @@index([userId, transactionDate])
+  @@map("transactions")
+}
+
+model TransactionTag {
+  id       String  @id @default(uuid())
+  name     String
+  fundType String  @map("fund_type")
+  iconUrl  String? @map("icon_url")
+  isSystem Boolean @default(false) @map("is_system")
+  userId   String? @map("user_id")
+
+  @@map("transaction_tags")
+}
+
+model AiParseLog {
+  id             String       @id @default(uuid())
+  userId         String       @map("user_id")
+  transactionId  String?      @map("transaction_id")
+  rawInput       String       @map("raw_input")
+  parsedEntity   String?      @map("parsed_entity")
+  parsedAmount   BigInt?      @map("parsed_amount")
+  parsedCategory String?      @map("parsed_category")
+  userCorrection Json?        @map("user_correction")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  transaction    Transaction? @relation(fields: [transactionId], references: [id])
+
+  @@map("ai_parse_logs")
+}
+
+model WeeklyReward {
+  id                 String    @id @default(uuid())
+  userId             String    @map("user_id")
+  weekStart          DateTime  @map("week_start") @db.Date
+  weekEnd            DateTime  @map("week_end") @db.Date
+  accumulatedSavings BigInt    @default(0) @map("accumulated_savings")
+  milestoneReached   String    @default("none") @map("milestone_reached")
+  isUnlocked         Boolean   @default(false) @map("is_unlocked")
+  unlockedAt         DateTime? @map("unlocked_at")
+  pointsEarned       Int       @default(0) @map("points_earned")
+  user               User      @relation(fields: [userId], references: [id])
+
+  @@map("weekly_rewards")
+}
+
+model DailyFoodSavings {
+  id                          String   @id @default(uuid())
+  userId                      String   @map("user_id")
+  date                        DateTime @db.Date
+  budgetMain                  BigInt   @map("budget_main")
+  budgetSub                   BigInt   @map("budget_sub")
+  spentMain                   BigInt   @default(0) @map("spent_main")
+  spentSub                    BigInt   @default(0) @map("spent_sub")
+  savedAmount                 BigInt   @default(0) @map("saved_amount")
+  dailyOverflow               BigInt   @default(0) @map("daily_overflow")
+  penaltyAppliedFromYesterday BigInt   @default(0) @map("penalty_applied_from_yesterday")
+  user                        User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, date])
+  @@map("daily_food_savings")
+}
+
+model RewardPoints {
+  id         String   @id @default(uuid())
+  userId     String   @unique @map("user_id")
+  total      Int      @default(0)
+  multiplier Decimal  @default(1.00) @db.Decimal(3, 2)
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@map("reward_points")
+}
+
+model OverflowEvent {
+  id                   String      @id @default(uuid())
+  userId               String      @map("user_id")
+  transactionId        String      @map("transaction_id")
+  eventDate            DateTime    @map("event_date") @db.Date
+  overflowLevel        String      @map("overflow_level")
+  overflowAmount       BigInt      @map("overflow_amount")
+  sourceFundType       String      @map("source_fund_type")
+  borrowedFromFundType String?     @map("borrowed_from_fund_type")
+  repaidAmount         BigInt      @default(0) @map("repaid_amount")
+  status               String      @default("pending")
+  penaltyApplied       Json?       @map("penalty_applied")
+  transaction          Transaction @relation(fields: [transactionId], references: [id])
+  user                 User        @relation(fields: [userId], references: [id])
+
+  @@map("overflow_events")
+}
+
+model Notification {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  type       String
+  title      String
+  body       String
+  isRead     Boolean  @default(false) @map("is_read")
+  actionHref String?  @map("action_href")
+  createdAt  DateTime @default(now()) @map("created_at")
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@map("notifications")
+}
+
+model PersonalWallet {
+  id        String   @id @default(uuid())
+  userId    String   @unique @map("user_id")
+  balance   BigInt   @default(0)
+  note      String?  @default("")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("personal_wallets")
+}

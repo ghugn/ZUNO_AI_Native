@@ -1,0 +1,666 @@
+@baseUrl = http://localhost:3000/api
+# Thay thế token sau khi đăng nhập thành công vào đây
+@authToken = your_jwt_token_here
+
+### ==========================================
+### 1. AUTHENTICATION
+### ==========================================
+
+### 1.1 Đăng ký tài khoản mới (Register)
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "student@zuno.vn",
+  "password": "ZunoPassword123!",
+  "fullName": "Nguyễn Văn Sinh Viên"
+}
+
+### 1.2 Đăng nhập (Login)
+# Sau khi gửi request này, hãy copy token trong response và dán vào biến @authToken ở trên cùng
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "student@zuno.vn",
+  "password": "ZunoPassword123!"
+}
+
+### 1.3 Lấy thông tin user hiện tại (Me)
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{authToken}}
+
+
+### ==========================================
+### 2. USER PROFILE (ONBOARDING)
+### ==========================================
+
+### 2.1 Khởi tạo Profile (Onboarding)
+# residenceType: 'rent' (Thuê trọ) hoặc 'dorm' (Ký túc xá)
+# monthlyIncome: Thu nhập hàng tháng (VND)
+POST {{baseUrl}}/profile
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "residenceType": "rent",
+  "monthlyIncome": 5000000,
+  "dormPaidSemester": false,
+  "hasFoodFromFamily": false
+}
+
+### 2.2 Lấy thông tin Profile
+GET {{baseUrl}}/profile
+Authorization: Bearer {{authToken}}
+
+### 2.3 Cập nhật Profile
+PUT {{baseUrl}}/profile
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "residenceType": "rent",
+  "monthlyIncome": 6000000,
+  "dormPaidSemester": false,
+  "hasFoodFromFamily": true
+}
+
+### 2.4 Xác nhận hoàn tất Onboarding
+POST {{baseUrl}}/profile/complete-onboarding
+Authorization: Bearer {{authToken}}
+
+
+### ==========================================
+### 3. FUNDS (QUẢN LÝ QUỸ)
+### ==========================================
+
+### 3.1 Lấy danh sách Fund Templates (để xem tỷ lệ gợi ý)
+# residenceType: 'rent' | 'dorm'
+GET {{baseUrl}}/funds/templates?residenceType=rent
+Authorization: Bearer {{authToken}}
+
+### 3.2 Khởi tạo 5 Quỹ cho tháng mới
+# API này sẽ tự động phân bổ thu nhập tháng của user theo tỷ lệ template vào 5 quỹ
+POST {{baseUrl}}/funds
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "month": "2026-05-01T00:00:00.000Z",
+  "monthlyIncome": 5000000,
+  "residenceType": "rent"
+}
+
+### 3.3 Lấy danh sách 5 Quỹ của tháng
+# Lấy các quỹ để có ID của từng quỹ (ví dụ quỹ 'food', 'living') để dùng cho Transaction
+GET {{baseUrl}}/funds?month=2026-05-01T00:00:00.000Z
+Authorization: Bearer {{authToken}}
+
+### 3.4 Cập nhật hạn mức hoặc trạng thái khóa của 1 Quỹ
+# Thay thế {fundId} bằng ID thật từ kết quả của API 3.3
+@fundId = replace_with_actual_fund_id
+PUT {{baseUrl}}/funds/{{fundId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "allocatedAmount": 2500000,
+  "isLocked": false
+}
+
+### 3.5 Tạo Fund Snapshot (lưu số dư hàng ngày)
+POST {{baseUrl}}/funds/snapshots
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "fundId": "{{fundId}}",
+  "snapshotDate": "2026-05-23T00:00:00.000Z",
+  "remainingAmount": 2450000,
+  "dailyDripAmount": 80000
+}
+
+### 3.6 Lấy danh sách snapshots của tháng
+GET {{baseUrl}}/funds/snapshots?month=2026-05-01T00:00:00.000Z
+Authorization: Bearer {{authToken}}
+
+
+### ==========================================
+### 4. TRANSACTION TAGS (TAG GIAO DỊCH)
+### ==========================================
+
+### 4.1 Lấy toàn bộ Tags (gồm hệ thống + tự tạo)
+GET {{baseUrl}}/tags
+Authorization: Bearer {{authToken}}
+
+### 4.2 Tạo Tag tùy chỉnh mới
+POST {{baseUrl}}/tags
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "Trà sữa",
+  "fundType": "experience",
+  "iconUrl": "https://example.com/icons/milktea.png"
+}
+
+### 4.3 Lấy Tags theo loại quỹ
+GET {{baseUrl}}/tags/fund/experience
+Authorization: Bearer {{authToken}}
+
+
+### ==========================================
+### 5. TRANSACTIONS (GIAO DỊCH)
+### ==========================================
+
+### 5.1 Tạo giao dịch mới
+# Chú ý: Cần điền đúng fundId (ví dụ quỹ food hoặc living)
+POST {{baseUrl}}/transactions
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "fundId": "{{fundId}}",
+  "amount": 50000,
+  "transactionType": "expense",
+  "category": "Ăn uống",
+  "description": "Cơm trưa văn phòng",
+  "inputMethod": "manual",
+  "mealType": "main",
+  "transactionDate": "2026-05-23T12:00:00.000Z"
+}
+
+### 5.2 Lấy danh sách giao dịch theo tháng
+GET {{baseUrl}}/transactions?month=2026-05-01T00:00:00.000Z
+Authorization: Bearer {{authToken}}
+
+### 5.3 Lấy danh sách giao dịch theo ngày
+GET {{baseUrl}}/transactions/by-date?date=2026-05-23T00:00:00.000Z
+Authorization: Bearer {{authToken}}
+
+
+### ==========================================
+### 6. DAILY FOOD SAVINGS (CƠ CHẾ ĂN UỐNG)
+### ==========================================
+
+### 6.1 Khởi tạo ngân sách ăn uống hàng ngày cho cả tháng (Bulk Create)
+# Tự động chia ngân sách quỹ Food tháng đó thành từng ngày
+POST {{baseUrl}}/daily-food/bulk
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "month": "2026-05-01T00:00:00.000Z",
+  "budgetMain": 35000,
+  "budgetSub": 15000
+}
+
+### 6.2 Lấy ngân sách ăn uống của một ngày cụ thể
+GET {{baseUrl}}/daily-food?date=2026-05-23T00:00:00.000Z
+Authorization: Bearer {{authToken}}
+
+### 6.3 Lấy toàn bộ ngân sách ăn uống trong tháng
+GET {{baseUrl}}/daily-food/month?month=2026-05-01T00:00:00.000Z
+Authorization: Bearer {{authToken}}
+
+
+### ==========================================
+### 7. REWARDS & POINTS (HỆ THỐNG ĐIỂM)
+### ==========================================
+
+### 7.1 Lấy thông tin điểm thưởng tích lũy của user
+GET {{baseUrl}}/rewards/points
+Authorization: Bearer {{authToken}}
+
+### 7.2 Lấy thông tin rương thưởng tuần (Weekly Chest)
+GET {{baseUrl}}/rewards/weekly?weekStart=2026-05-18T00:00:00.000Z
+Authorization: Bearer {{authToken}}
+
+
+### ==========================================
+### 8. OVERFLOW EVENTS (SỰ KIỆN LỐ)
+### ==========================================
+
+### 8.1 Lấy các sự kiện lố đang chờ xử lý (chưa trả hết nợ)
+GET {{baseUrl}}/overflows/pending
+Authorization: Bearer {{authToken}}
+
+
+### ==========================================
+### 9. AI PARSE LOGS (GHI NHẬN NLP LOG)
+### ==========================================
+
+### 9.1 Tạo log parse AI mới
+POST {{baseUrl}}/ai-logs
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "rawInput": "Ăn bún chả 45k",
+  "parsedEntity": "bún chả",
+  "parsedAmount": 45000,
+  "parsedCategory": "food"
+}
+
+
+### ==========================================
+### 10. CƠ CHẾ 5 QUỸ — FULL FLOW TEST
+### ==========================================
+
+### 10.1 Khởi tạo 5 Quỹ cho tháng 6 (sinh viên ở trọ, 5 triệu/tháng)
+# Kết quả trả về gồm: fundsCreated, dailyFoodCreated, allocations (5 quỹ), dailyBudget (main + sub)
+# Ví dụ thu nhập 5tr:
+#   - Quỹ Sinh hoạt: 2,000,000 (40%)
+#   - Quỹ Ăn uống:   1,000,000 (20%) → chia đều 30 ngày → ~33,333/ngày
+#     - Ăn chính (70%): ~23,333/ngày
+#     - Ăn phụ  (30%): ~10,000/ngày
+#   - Quỹ Phát triển: 750,000 (15%)
+#   - Quỹ Trải nghiệm: 500,000 (10%)
+#   - Quỹ Tương lai: 750,000 (15%)
+POST {{baseUrl}}/funds
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "month": "2026-06-01T00:00:00.000Z",
+  "monthlyIncome": 5000000,
+  "residenceType": "rent"
+}
+
+### 10.2 Lấy danh sách 5 Quỹ tháng 6 (lấy fundId của quỹ food)
+GET {{baseUrl}}/funds?month=2026-06-01T00:00:00.000Z
+Authorization: Bearer {{authToken}}
+
+### 10.3 Xem ngân sách ăn uống ngày 5/6
+GET {{baseUrl}}/daily-food?date=2026-06-05T00:00:00.000Z
+Authorization: Bearer {{authToken}}
+
+
+### ==========================================
+### 11. CƠ CHẾ 3 LỐ — TEST SCENARIOS
+### ==========================================
+
+### --- Kịch bản 1: CHI TIÊU BÌNH THƯỜNG (Không lố) ---
+### 11.1 Ăn trưa 20k (ăn chính, quỹ food) → Không lố
+# Thay {{foodFundId}} bằng fund ID thật của quỹ food tháng 6
+@foodFundId = replace_with_food_fund_id
+POST {{baseUrl}}/transactions
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "fundId": "{{foodFundId}}",
+  "amount": 20000,
+  "transactionType": "expense",
+  "category": "Ăn uống",
+  "description": "Cơm trưa bình dân",
+  "inputMethod": "manual",
+  "mealType": "main",
+  "transactionDate": "2026-06-05T12:00:00.000Z"
+}
+
+### --- Kịch bản 2: LỐ NHẸ (Level 1) ---
+### 11.2 Ăn vặt 50k (ăn phụ) → Tổng chi > ngân sách ngày → Lố nhẹ
+# Sau request 11.1, budget ngày 5/6 = ~33k. Đã chi 20k, còn ~13k.
+# Chi thêm 50k → Lố = 20k + 50k - 33k = ~37k
+# Hệ thống sẽ trừ đều ~1.5k/ngày vào budgetSub cho 25 ngày còn lại
+POST {{baseUrl}}/transactions
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "fundId": "{{foodFundId}}",
+  "amount": 50000,
+  "transactionType": "expense",
+  "category": "Ăn vặt",
+  "description": "Trà sữa + bánh tráng trộn",
+  "inputMethod": "manual",
+  "mealType": "sub",
+  "transactionDate": "2026-06-05T15:00:00.000Z"
+}
+
+### 11.3 Kiểm tra ngân sách ăn phụ ngày 6/6 (phải bị giảm vì penalty)
+GET {{baseUrl}}/daily-food?date=2026-06-06T00:00:00.000Z
+Authorization: Bearer {{authToken}}
+
+### --- Kịch bản 3: LỐ VỪA (Level 2) ---
+### 11.4 Chi tiêu lớn 500k (ăn chính) → Vượt quá tổng budgetSub tương lai → Level 2
+# Sẽ mượn từ quỹ Trải nghiệm và/hoặc Phát triển
+POST {{baseUrl}}/transactions
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "fundId": "{{foodFundId}}",
+  "amount": 500000,
+  "transactionType": "expense",
+  "category": "Ăn uống",
+  "description": "Đi ăn buffet lớn sinh nhật bạn",
+  "inputMethod": "manual",
+  "mealType": "main",
+  "transactionDate": "2026-06-10T19:00:00.000Z"
+}
+
+### --- Kịch bản 4: LỐ NẶNG (Level 3) ---
+### 11.5 Chi tiêu cực lớn 2tr (ăn chính) → Vượt hết experience + growth → Level 3
+# Sẽ rút quỹ Tương lai, khóa rương tuần, giảm hệ số điểm thưởng
+POST {{baseUrl}}/transactions
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "fundId": "{{foodFundId}}",
+  "amount": 2000000,
+  "transactionType": "expense",
+  "category": "Ăn uống",
+  "description": "Đặt tiệc cho cả nhóm",
+  "inputMethod": "manual",
+  "mealType": "main",
+  "transactionDate": "2026-06-15T20:00:00.000Z"
+}
+
+### 11.6 Kiểm tra trạng thái 5 quỹ sau các sự kiện lố
+GET {{baseUrl}}/funds?month=2026-06-01T00:00:00.000Z
+Authorization: Bearer {{authToken}}
+
+### 11.7 Kiểm tra danh sách overflow events
+GET {{baseUrl}}/overflows/pending
+Authorization: Bearer {{authToken}}
+
+### 11.8 Kiểm tra hệ số nhân điểm thưởng (phải giảm nếu có Level 3)
+GET {{baseUrl}}/rewards/points
+Authorization: Bearer {{authToken}}
+
+
+### ==========================================
+### 12. RƯƠNG TÍCH LŨY TUẦN (WEEKLY CHEST) — TEST FLOW
+### ==========================================
+
+### 12.1 Tạo rương tuần mới (thủ công)
+# weekStart = Thứ 2 đầu tuần, weekEnd = Chủ nhật cuối tuần
+POST {{baseUrl}}/rewards/weekly
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "weekStart": "2026-06-01T00:00:00.000Z",
+  "weekEnd": "2026-06-07T00:00:00.000Z"
+}
+
+### 12.2 Đồng bộ rương tuần (GET tự động sync)
+# API này sẽ tự động:
+#   1. Quét DailyFoodSavings của tuần 01-07/06
+#   2. Tính tổng tiền ăn dư (savedAmount)
+#   3. Trừ đi tiền đã bị mượn do Lố Cấp 2
+#   4. Cập nhật accumulatedSavings, milestone, pointsEarned
+GET {{baseUrl}}/rewards/weekly?weekStart=2026-06-01T00:00:00.000Z
+Authorization: Bearer {{authToken}}
+
+### 12.3 Giả lập tiết kiệm: Ăn trưa 15k (hạn mức ~23k/ngày, tiết kiệm ~8k)
+# Trước đó cần có quỹ tháng 6 đã tạo ở section 10
+POST {{baseUrl}}/transactions
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "fundId": "{{foodFundId}}",
+  "amount": 15000,
+  "transactionType": "expense",
+  "category": "Ăn uống",
+  "description": "Cơm trưa tiết kiệm - test weekly chest",
+  "inputMethod": "manual",
+  "mealType": "main",
+  "transactionDate": "2026-06-02T12:00:00.000Z"
+}
+
+### 12.4 Giả lập tiết kiệm ngày 2: Ăn phụ 5k (hạn mức ~10k/ngày, tiết kiệm ~5k)
+POST {{baseUrl}}/transactions
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "fundId": "{{foodFundId}}",
+  "amount": 5000,
+  "transactionType": "expense",
+  "category": "Ăn uống",
+  "description": "Trà đá tiết kiệm - test weekly chest",
+  "inputMethod": "manual",
+  "mealType": "sub",
+  "transactionDate": "2026-06-02T15:00:00.000Z"
+}
+
+### 12.5 Kiểm tra ngân sách ăn ngày 02/06 (phải thấy savedAmount > 0)
+GET {{baseUrl}}/daily-food?date=2026-06-02T00:00:00.000Z
+Authorization: Bearer {{authToken}}
+
+### 12.6 Đồng bộ lại rương tuần (accumulatedSavings phải tăng lên)
+GET {{baseUrl}}/rewards/weekly?weekStart=2026-06-01T00:00:00.000Z
+Authorization: Bearer {{authToken}}
+
+### 12.7 Mở khóa rương tuần (Claim) — nhận điểm thưởng
+# Thay {{weeklyRewardId}} bằng ID thật từ kết quả 12.2
+@weeklyRewardId = replace_with_weekly_reward_id
+POST {{baseUrl}}/rewards/weekly/{{weeklyRewardId}}/claim
+Authorization: Bearer {{authToken}}
+
+### 12.8 Kiểm tra tổng điểm thưởng sau khi mở rương
+GET {{baseUrl}}/rewards/points
+Authorization: Bearer {{authToken}}
+
+### 12.9 Thử mở lại rương đã claim (phải trả lỗi 400)
+POST {{baseUrl}}/rewards/weekly/{{weeklyRewardId}}/claim
+Authorization: Bearer {{authToken}}
+
+### ==========================================
+### 13. TẦM NHÌN DÀI HẠN & LÃI KÉP
+### ==========================================
+
+### 13.1 Nhỏ giọt quỹ Tương lai — ngày đầu tháng
+POST {{baseUrl}}/funds/snapshots/drip
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "date": "2026-05-01"
+}
+
+### 13.2 Nhỏ giọt quỹ Tương lai — ngày giữa tháng
+POST {{baseUrl}}/funds/snapshots/drip
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "date": "2026-05-15"
+}
+
+### 13.3 Nhỏ giọt quỹ Tương lai — ngày cuối tháng
+POST {{baseUrl}}/funds/snapshots/drip
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "date": "2026-05-31"
+}
+
+### 13.4 Nhỏ giọt không truyền date (mặc định = hôm nay)
+POST {{baseUrl}}/funds/snapshots/drip
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{}
+
+### 13.5 Xem danh sách snapshots quỹ tháng 5/2026
+GET {{baseUrl}}/funds/snapshots?month=2026-05-01
+Authorization: Bearer {{authToken}}
+
+### 13.6 Kết chuyển tiền thừa cuối tháng (Rollover)
+POST {{baseUrl}}/funds/rollover
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "month": "2026-05-01"
+}
+
+### 13.7 Dự phóng lãi kép — tự lấy từ quỹ future (5 năm, 6.5%/năm)
+GET {{baseUrl}}/funds/projection
+Authorization: Bearer {{authToken}}
+
+### 13.8 Dự phóng lãi kép — truyền tham số tùy chỉnh
+GET {{baseUrl}}/funds/projection?monthlyContribution=750000&annualRate=7&years=3
+Authorization: Bearer {{authToken}}
+
+### 13.9 Dự phóng lãi kép — nhập thủ công (10 năm, 8%/năm, 500k/tháng)
+GET {{baseUrl}}/funds/projection?monthlyContribution=500000&annualRate=8&years=10
+Authorization: Bearer {{authToken}}
+
+
+### ==========================================
+### 14. THU NHẬP NGOÀI & CHUYỂN QUỸ (BUG-01 & GAP-02 FIX)
+### ==========================================
+
+### 14.1 Ghi nhận thu nhập đột xuất vào quỹ Trải nghiệm
+# → allocatedAmount của quỹ experience phải tăng thêm 200000 VND
+POST {{baseUrl}}/transactions
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "fundId": "PASTE_EXPERIENCE_FUND_ID",
+  "amount": 200000,
+  "transactionType": "income",
+  "category": "extra_income",
+  "description": "Ba mẹ gửi thêm tiền cho đi chơi"
+}
+
+### 14.2 Kiểm tra số dư quỹ sau khi nhận thu nhập
+# → Kỳ vọng: allocatedAmount của quỹ experience tăng 200k so với trước
+GET {{baseUrl}}/funds?month=2026-05-01
+Authorization: Bearer {{authToken}}
+
+### 14.3 Chuyển quỹ: Growth → Experience (có targetFundId)
+# → spentAmount quỹ growth phải tăng, allocatedAmount quỹ experience phải tăng
+POST {{baseUrl}}/transactions
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "fundId": "PASTE_GROWTH_FUND_ID",
+  "amount": 100000,
+  "transactionType": "transfer",
+  "category": "fund_transfer",
+  "description": "Chuyển tiền từ quỹ Phát triển sang Trải nghiệm",
+  "targetFundId": "PASTE_EXPERIENCE_FUND_ID"
+}
+
+### 14.4 Chuyển quỹ thiếu targetFundId (phải trả lỗi 400)
+POST {{baseUrl}}/transactions
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "fundId": "PASTE_GROWTH_FUND_ID",
+  "amount": 50000,
+  "transactionType": "transfer",
+  "category": "fund_transfer",
+  "description": "Chuyển quỹ — thiếu targetFundId"
+}
+
+### 14.5 Xóa giao dịch thu nhập (rollback allocatedAmount)
+# Thay PASTE_INCOME_TX_ID bằng id từ response của 14.1
+# → allocatedAmount quỹ experience phải giảm về giá trị ban đầu
+DELETE {{baseUrl}}/transactions/PASTE_INCOME_TX_ID
+Authorization: Bearer {{authToken}}
+
+### 14.6 Xóa giao dịch chuyển quỹ (rollback cả 2 quỹ)
+# Thay PASTE_TRANSFER_TX_ID bằng id từ response của 14.3
+# → spentAmount quỹ growth phải giảm, allocatedAmount quỹ experience phải giảm
+DELETE {{baseUrl}}/transactions/PASTE_TRANSFER_TX_ID
+Authorization: Bearer {{authToken}}
+
+
+### ==========================================
+### 15. CLOUD CRON ENDPOINTS (GAP-03 FIX)
+### ==========================================
+# Trong dev mode (không có CRON_SECRET), gọi trực tiếp không cần header.
+# Trong production, thêm header: X-Cron-Secret: <giá trị CRON_SECRET>
+
+### 15.1 Kiểm tra trạng thái scheduler
+GET {{baseUrl}}/cron/status
+
+### 15.2 Kích hoạt nhỏ giọt hàng ngày (Daily Drip) — ngày hôm nay
+POST {{baseUrl}}/cron/daily-drip
+Content-Type: application/json
+
+{}
+
+### 15.3 Kích hoạt nhỏ giọt cho ngày cụ thể (test)
+POST {{baseUrl}}/cron/daily-drip
+Content-Type: application/json
+
+{
+  "date": "2026-05-24"
+}
+
+### 15.4 Kích hoạt kết chuyển cuối tháng (Monthly Rollover)
+POST {{baseUrl}}/cron/monthly-rollover
+Content-Type: application/json
+
+{
+  "month": "2026-05-01"
+}
+
+### 15.5 Gọi cron với header X-Cron-Secret (mô phỏng production)
+# Thay YOUR_CRON_SECRET bằng giá trị CRON_SECRET trong .env
+POST {{baseUrl}}/cron/daily-drip
+Content-Type: application/json
+X-Cron-Secret: YOUR_CRON_SECRET
+
+{}
+
+
+### ==========================================
+### 16. RECEIPT SCAN (AI Quét hóa đơn)
+### ==========================================
+
+### 16.1 Quét hóa đơn từ ảnh (POST /api/receipt/scan)
+# Yêu cầu: GEMINI_API_KEY phải được cấu hình trong backend/.env
+# Upload file ảnh hóa đơn (JPEG/PNG/WebP)
+# REST Client: thay đường dẫn file bên dưới bằng đường dẫn ảnh thật trên máy
+POST http://localhost:5000/api/receipt/scan
+Authorization: Bearer {{authToken}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary
+
+------WebKitFormBoundary
+Content-Disposition: form-data; name="image"; filename="receipt.jpg"
+Content-Type: image/jpeg
+
+< ./test-receipt.jpg
+------WebKitFormBoundary--
+
+# Response mẫu khi thành công:
+# {
+#   "success": true,
+#   "data": {
+#     "rawText": "Quán Phở Hà Nội\nBát phở bò: 50.000đ\nNước ngọt: 15.000đ\nTổng: 65.000đ",
+#     "amount": 65000,
+#     "category": "Food and Drinks",
+#     "time": null,
+#     "source": "Receipt",
+#     "description": "Ăn tại Quán Phở Hà Nội - Phở bò + Nước ngọt",
+#     "confidence": 0.92
+#   }
+# }
+
+### 16.2 Kiểm tra khi không gửi file ảnh (lỗi 400)
+POST http://localhost:5000/api/receipt/scan
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{}
+
+### 16.3 Kiểm tra khi chưa đặt GEMINI_API_KEY (lỗi 503)
+# (Test này chỉ có hiệu lực nếu GEMINI_API_KEY trong .env là "your_gemini_api_key_here")
+# POST http://localhost:5000/api/receipt/scan
+# Authorization: Bearer {{authToken}}
+

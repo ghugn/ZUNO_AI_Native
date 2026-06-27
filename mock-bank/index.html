@@ -1,0 +1,1902 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ZUNO Bank — Smart Banking</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --mb-primary: #174f84;
+      --mb-secondary: #4D78A8;
+      --mb-light: #eef4ff;
+      --mb-dark: #112945;
+      --bank-border: #e3e6eb;
+      --bank-text: #1e2d3d;
+      --bank-muted: #546982;
+      --bank-success: #16a34a;
+      --bank-danger: #dc2626;
+      --bank-warning: #d97706;
+      --zuno-blue: #174f84;
+      --zuno-accent: #4D78A8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      overflow-x: hidden;
+      width: 100%;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f3f4f6;
+      color: var(--bank-text);
+      min-height: 100vh;
+    }
+
+    /* ── Top Bar ─────────────────────────── */
+    .topbar {
+      background: linear-gradient(135deg, #112945 0%, #174f84 60%, #4D78A8 100%);
+      padding: 0 12px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 20px rgba(17,41,69,0.35);
+      max-width: 393px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .bank-logo { display: flex; align-items: center; gap: 8px; }
+    .bank-logo-icon {
+      width: 32px; height: 32px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 800;
+      color: white; letter-spacing: -1px;
+      backdrop-filter: blur(8px);
+    }
+    .bank-name { font-size: 15px; font-weight: 800; color: white; }
+    .bank-name span { color: #BFE6C3; }
+    .bank-tagline { font-size: 9px; color: rgba(255,255,255,0.65); margin-top: 1px; }
+
+    @media (max-width: 380px) {
+      .bank-tagline { display: none; }
+    }
+
+    .topbar-right { display: flex; align-items: center; gap: 6px; }
+    .zuno-status {
+      display: flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 20px; padding: 4px 10px;
+      font-size: 11px; font-weight: 500; color: white;
+      backdrop-filter: blur(8px);
+    }
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%; background: #4ade80;
+      animation: pulse 2s infinite;
+    }
+    .status-dot.offline { background: #f87171; animation: none; }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.3); }
+    }
+
+    /* ── Main App Layout ─────────────────── */
+    .app-container {
+      width: 100%;
+      max-width: 393px;
+      margin: 0 auto;
+      min-height: calc(100vh - 64px);
+      background: white;
+      box-shadow: 0 0 40px rgba(0,0,0,0.08);
+      overflow-x: hidden;
+    }
+
+    /* ── Account Hero Card ────────────────── */
+    .account-hero {
+      background: linear-gradient(135deg, var(--mb-dark) 0%, var(--mb-primary) 50%, var(--mb-secondary) 100%);
+      padding: 22px 18px;
+      position: relative;
+      overflow: hidden;
+    }
+    .account-hero::before {
+      content: ''; position: absolute;
+      top: -50px; right: -50px;
+      width: 200px; height: 200px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 50%;
+    }
+    .account-hero::after {
+      content: ''; position: absolute;
+      bottom: -30px; left: -30px;
+      width: 150px; height: 150px;
+      background: rgba(255,255,255,0.04);
+      border-radius: 50%;
+    }
+    .account-hero-top {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .account-label {
+      font-size: 10px; font-weight: 600;
+      letter-spacing: 2px; color: rgba(255,255,255,0.65);
+      text-transform: uppercase;
+    }
+    .account-type-badge {
+      font-size: 9px; font-weight: 700;
+      background: rgba(255,255,255,0.2); color: white;
+      padding: 3px 8px; border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+    .account-number {
+      font-size: 14px; letter-spacing: 3px;
+      color: rgba(255,255,255,0.85);
+      font-family: 'Courier New', monospace;
+      margin-bottom: 4px;
+    }
+    .account-holder { font-size: 18px; font-weight: 700; color: white; margin-bottom: 16px; }
+    .balance-section {}
+    .balance-label { font-size: 11px; color: rgba(255,255,255,0.6); margin-bottom: 4px; }
+    .balance-amount { font-size: 32px; font-weight: 800; color: white; letter-spacing: -1px; }
+    .balance-currency { font-size: 15px; font-weight: 500; color: rgba(255,255,255,0.8); margin-left: 4px; }
+
+    /* ── Quick Actions ───────────────────── */
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+      background: white;
+      border-bottom: 1px solid var(--bank-border);
+      padding: 16px 8px;
+    }
+    .quick-action {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 8px;
+      padding: 12px 8px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .quick-action:hover { background: #f7f8fa; }
+    .quick-action-icon {
+      width: 48px; height: 48px;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+    }
+    .quick-action-label { font-size: 11px; font-weight: 600; color: var(--bank-muted); text-align: center; }
+
+    /* ── ZUNO Connect Banner ─────────────── */
+    .zuno-connect-banner {
+      margin: 20px 16px;
+      background: linear-gradient(135deg, #eef6ff 0%, #f0eaff 100%);
+      border: 1.5px solid rgba(23,79,132,0.2);
+      border-radius: 20px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .zuno-connect-banner::before {
+      content: '';
+      position: absolute;
+      top: -20px; right: -20px;
+      width: 100px; height: 100px;
+      background: rgba(23,79,132,0.06);
+      border-radius: 50%;
+    }
+    .zuno-banner-top {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 12px;
+    }
+    .zuno-banner-logo {
+      width: 44px; height: 44px;
+      background: linear-gradient(135deg, #174f84, #4D78A8);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; font-weight: 900;
+      color: white;
+      box-shadow: 0 4px 12px rgba(23,79,132,0.3);
+      flex-shrink: 0;
+    }
+    .zuno-banner-text {}
+    .zuno-banner-title { font-size: 15px; font-weight: 700; color: #174f84; }
+    .zuno-banner-sub { font-size: 12px; color: var(--bank-muted); margin-top: 2px; }
+    .zuno-features {
+      display: flex; flex-direction: column; gap: 6px;
+      margin-bottom: 16px;
+    }
+    .zuno-feature-item {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 12px; color: #374151;
+    }
+    .zuno-feature-icon { font-size: 14px; flex-shrink: 0; }
+
+    .btn-connect-zuno {
+      width: 100%;
+      background: linear-gradient(135deg, #174f84 0%, #4D78A8 100%);
+      color: white; border: none;
+      border-radius: 14px; padding: 15px;
+      font-size: 15px; font-weight: 700;
+      cursor: pointer; transition: all 0.3s;
+      font-family: 'Inter', sans-serif;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      box-shadow: 0 6px 20px rgba(23,79,132,0.35);
+    }
+    .btn-connect-zuno:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 28px rgba(23,79,132,0.45);
+    }
+    .btn-connect-zuno:active { transform: translateY(0); }
+    .btn-connect-zuno.loading { opacity: 0.7; cursor: not-allowed; }
+
+    /* ── Connected State Banner ───────────── */
+    .zuno-connected-banner {
+      margin: 16px 16px 0;
+      background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+      border: 1.5px solid #86efac;
+      border-radius: 18px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+    }
+    .zuno-connected-icon {
+      width: 40px; height: 40px; flex-shrink: 0;
+      background: linear-gradient(135deg, #16a34a, #22c55e);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 4px 10px rgba(22,163,74,0.3);
+    }
+    .zuno-connected-text { flex: 1; min-width: 0; }
+    .zuno-connected-title { font-size: 13px; font-weight: 700; color: #166534; white-space: normal; }
+    .zuno-connected-sub { font-size: 11px; color: #15803d; margin-top: 1px; white-space: normal; }
+    .zuno-connected-actions {
+      display: flex; gap: 8px; width: 100%;
+    }
+    .btn-view-zuno {
+      flex: 1;
+      background: #16a34a; color: white;
+      border: none; border-radius: 10px;
+      padding: 10px 12px; font-size: 12px; font-weight: 700;
+      cursor: pointer; transition: all 0.2s;
+      font-family: 'Inter', sans-serif;
+      text-align: center;
+    }
+    .btn-view-zuno:hover { background: #15803d; transform: translateY(-1px); }
+    .btn-disconnect-zuno {
+      flex: 1;
+      background: white; color: #dc2626;
+      border: 1.5px solid #fca5a5;
+      border-radius: 10px;
+      padding: 10px 12px; font-size: 12px; font-weight: 700;
+      cursor: pointer; transition: all 0.2s;
+      font-family: 'Inter', sans-serif;
+      text-align: center;
+    }
+    .btn-disconnect-zuno:hover { background: #fef2f2; border-color: #dc2626; transform: translateY(-1px); }
+
+    /* ── Transaction Section ─────────────── */
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 16px 8px;
+    }
+    .section-title { font-size: 15px; font-weight: 700; color: #112945; }
+    .section-action { font-size: 12px; font-weight: 600; color: var(--mb-primary); cursor: pointer; }
+
+    /* ── Send Transaction Form ───────────── */
+    .tx-form-card {
+      margin: 0 16px 16px;
+      background: #f7f8fa;
+      border-radius: 16px;
+      padding: 20px;
+      border: 1.5px solid var(--bank-border);
+    }
+    .form-title {
+      font-size: 14px; font-weight: 700;
+      margin-bottom: 14px;
+      display: flex; align-items: center; gap: 8px;
+      color: #112945;
+    }
+    .form-group { margin-bottom: 12px; }
+    .form-label {
+      font-size: 11px; font-weight: 600;
+      color: #546982; margin-bottom: 5px;
+      display: block; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .form-control {
+      width: 100%;
+      background: #ffffff;
+      border: 1.5px solid var(--bank-border);
+      border-radius: 10px; padding: 10px 14px;
+      color: var(--bank-text); font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.2s; outline: none;
+    }
+    .form-control:focus {
+      border-color: var(--mb-primary);
+      box-shadow: 0 0 0 3px rgba(23,79,132,0.15);
+    }
+    .form-control::placeholder { color: #9db2c6; }
+    .amount-wrapper { position: relative; }
+    .amount-prefix {
+      position: absolute; left: 14px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--bank-warning); font-weight: 700; font-size: 14px;
+    }
+    .amount-wrapper .form-control { padding-left: 50px; }
+
+    .merchant-presets {
+      display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px;
+    }
+    .merchant-tag {
+      background: #eef4ff; border: 1.5px solid #bfdbfe;
+      border-radius: 8px; padding: 4px 10px;
+      font-size: 11px; cursor: pointer;
+      transition: all 0.2s; color: var(--mb-primary); font-weight: 500;
+    }
+    .merchant-tag:hover { background: #dbeafe; border-color: var(--mb-primary); }
+
+    .btn-submit {
+      width: 100%;
+      background: linear-gradient(135deg, var(--mb-dark) 0%, var(--mb-primary) 100%);
+      color: white; border: none; border-radius: 12px;
+      padding: 13px; font-size: 14px; font-weight: 700;
+      cursor: pointer; transition: all 0.3s;
+      font-family: 'Inter', sans-serif;
+      margin-top: 4px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      box-shadow: 0 4px 12px rgba(23,79,132,0.25);
+    }
+    .btn-submit:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 20px rgba(23,79,132,0.35);
+    }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    /* ── Auto Play ───────────────────────── */
+    .autoplay-bar {
+      margin: 0 16px 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .autoplay-bar button {
+      flex: 1 1 calc(50% - 4px);
+      min-width: 105px;
+      padding: 10px 8px;
+      font-size: 12px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+    }
+    .btn-auto-play {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: white; border: none; border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer; transition: all 0.2s;
+      font-family: 'Inter', sans-serif;
+      box-shadow: 0 2px 8px rgba(217,119,6,0.3);
+    }
+    .btn-auto-play:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(217,119,6,0.4); }
+    .btn-auto-play.active { background: linear-gradient(135deg, #dc2626, #b91c1c); box-shadow: 0 2px 8px rgba(220,38,38,0.3); }
+
+    .btn-clear-tx {
+      background: transparent; color: var(--bank-muted);
+      border: 1.5px solid var(--bank-border);
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+      font-family: 'Inter', sans-serif;
+    }
+    .btn-clear-tx:hover { border-color: #dc2626; color: #dc2626; }
+
+    /* ── Transaction Feed ────────────────── */
+    .tx-feed { padding: 0 16px 16px; }
+    .tx-item {
+      background: white; border: 1.5px solid var(--bank-border);
+      border-radius: 14px; padding: 14px 16px;
+      margin-bottom: 8px;
+      display: flex; align-items: center; gap: 14px;
+      animation: slideIn 0.3s ease;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .tx-item.success { border-left: 3px solid #16a34a; }
+    .tx-item.error { border-left: 3px solid #dc2626; }
+    .tx-item.overflow { border-left: 3px solid #f59e0b; }
+
+    .tx-icon {
+      width: 42px; height: 42px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; flex-shrink: 0;
+    }
+    .tx-info { flex: 1; min-width: 0; }
+    .tx-merchant { font-size: 14px; font-weight: 600; color: #1e2d3d; }
+    .tx-meta { font-size: 11px; color: var(--bank-muted); margin-top: 3px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .tx-right { text-align: right; flex-shrink: 0; }
+    .tx-amount { font-size: 15px; font-weight: 700; color: #dc2626; }
+    .tx-time { font-size: 11px; color: #9db2c6; margin-top: 2px; }
+
+    .fund-badge {
+      font-size: 10px; font-weight: 700;
+      padding: 2px 6px; border-radius: 5px;
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .fund-food { background: #fff7ed; color: #ea580c; }
+    .fund-living { background: #eef2ff; color: #4f46e5; }
+    .fund-growth { background: #f0fdf4; color: #16a34a; }
+    .fund-experience { background: #faf5ff; color: #9333ea; }
+    .fund-future { background: #fffbeb; color: #d97706; }
+    .overflow-badge {
+      font-size: 10px; font-weight: 700;
+      padding: 2px 6px; border-radius: 5px;
+      background: #fef2f2; color: #dc2626; border: 1px solid #fecaca;
+    }
+    .method-badge {
+      font-size: 10px; font-weight: 600;
+      padding: 2px 6px; border-radius: 5px;
+      background: #f7f8fa; color: #546982; border: 1px solid #e3e6eb;
+    }
+
+    .empty-feed {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 40px 20px; text-align: center;
+    }
+    .empty-feed-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.4; }
+    .empty-feed-text { font-size: 15px; font-weight: 600; color: #546982; }
+    .empty-feed-sub { font-size: 13px; color: #9db2c6; margin-top: 6px; max-width: 260px; line-height: 1.5; }
+
+    /* ── Stats Bar ───────────────────────── */
+    .stats-bar {
+      background: white; border-top: 1.5px solid var(--bank-border);
+      border-bottom: 1.5px solid var(--bank-border);
+      padding: 14px 16px;
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 16px; margin-bottom: 16px;
+    }
+    .stat-item { text-align: center; }
+    .stat-value { font-size: 22px; font-weight: 800; color: #112945; }
+    .stat-label { font-size: 10px; color: #546982; margin-top: 2px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* ── Toast ───────────────────────────── */
+    .toast-container {
+      position: fixed; top: 80px; right: 16px;
+      z-index: 1000; display: flex; flex-direction: column; gap: 8px;
+    }
+    .toast {
+      background: white; border: 1.5px solid var(--bank-border);
+      border-radius: 12px; padding: 12px 16px;
+      max-width: 300px; animation: toastIn 0.3s ease;
+      box-shadow: 0 8px 32px rgba(17,41,69,0.12);
+    }
+    .toast.success { border-left: 3px solid #16a34a; }
+    .toast.error { border-left: 3px solid #dc2626; }
+    .toast.overflow-warn { border-left: 3px solid #f59e0b; }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateX(100%); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    .toast-title { font-size: 13px; font-weight: 700; margin-bottom: 3px; color: #112945; }
+    .toast-body { font-size: 12px; color: #546982; }
+
+    /* ── Connecting Overlay ──────────────── */
+    .connecting-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(23,79,132,0.92);
+      backdrop-filter: blur(8px);
+      z-index: 500;
+      align-items: center; justify-content: center;
+      flex-direction: column; gap: 20px;
+    }
+    .connecting-overlay.visible { display: flex; }
+    .connecting-spinner {
+      width: 60px; height: 60px;
+      border: 4px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .connecting-text { color: white; font-size: 18px; font-weight: 700; }
+    .connecting-sub { color: rgba(255,255,255,0.7); font-size: 13px; }
+
+    /* ── Disconnect Confirm Modal ─────────── */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(17,41,69,0.6);
+      backdrop-filter: blur(6px);
+      z-index: 600;
+      align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    .modal-overlay.visible { display: flex; }
+    .modal-card {
+      background: white;
+      border-radius: 24px;
+      padding: 28px 24px;
+      max-width: 360px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(17,41,69,0.25);
+      animation: modalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.9) translateY(20px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .modal-icon {
+      width: 56px; height: 56px;
+      background: #fef2f2;
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px; margin-bottom: 16px;
+    }
+    .modal-title { font-size: 18px; font-weight: 800; color: #112945; margin-bottom: 8px; }
+    .modal-body { font-size: 13px; color: #546982; line-height: 1.6; margin-bottom: 20px; }
+    .modal-warn {
+      background: #fff7ed; border: 1.5px solid #fed7aa;
+      border-radius: 12px; padding: 12px 14px;
+      font-size: 12px; color: #9a3412;
+      margin-bottom: 20px; line-height: 1.5;
+    }
+    .modal-actions { display: flex; flex-direction: column; gap: 10px; }
+    .btn-modal-confirm {
+      width: 100%;
+      background: linear-gradient(135deg, #dc2626, #b91c1c);
+      color: white; border: none; border-radius: 12px;
+      padding: 14px; font-size: 14px; font-weight: 700;
+      cursor: pointer; transition: all 0.2s;
+      font-family: 'Inter', sans-serif;
+      box-shadow: 0 4px 12px rgba(220,38,38,0.3);
+    }
+    .btn-modal-confirm:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(220,38,38,0.4); }
+    .btn-modal-cancel {
+      width: 100%;
+      background: transparent; color: #546982;
+      border: 1.5px solid var(--bank-border);
+      border-radius: 12px; padding: 14px;
+      font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+      font-family: 'Inter', sans-serif;
+    }
+    .btn-modal-cancel:hover { background: #f7f8fa; color: #112945; border-color: #9db2c6; }
+
+    /* ── Reset MVP Button ───────────── */
+    .btn-reset-mvp {
+      display: flex; align-items: center; gap: 8px;
+      background: linear-gradient(135deg, #ea580c, #f97316);
+      color: white; border: none; border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer; transition: all 0.2s;
+      font-family: 'Inter', sans-serif;
+      box-shadow: 0 4px 12px rgba(234,88,12,0.3);
+    }
+    .btn-reset-mvp:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(234,88,12,0.4); }
+    .btn-reset-mvp:active { transform: translateY(0); }
+    .reset-confirm-modal .modal-icon { background: linear-gradient(135deg, #ea580c, #f97316); }
+    .btn-modal-confirm-orange {
+      width: 100%;
+      background: linear-gradient(135deg, #ea580c, #f97316);
+      color: white; border: none;
+      border-radius: 12px; padding: 14px;
+      font-size: 14px; font-weight: 700;
+      cursor: pointer; transition: all 0.2s;
+      font-family: 'Inter', sans-serif;
+      box-shadow: 0 4px 12px rgba(234,88,12,0.3);
+    }
+    .btn-modal-confirm-orange:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(234,88,12,0.4); }
+
+    /* ── Bottom Nav ──────────────────────── */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 393px;
+      background: white; border-top: 1px solid var(--bank-border);
+      display: flex; padding: 8px 0 12px;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
+    }
+    .nav-item {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; gap: 4px;
+      cursor: pointer; padding: 6px;
+    }
+    .nav-icon { font-size: 22px; }
+    .nav-label { font-size: 10px; font-weight: 600; color: #9db2c6; }
+    .nav-item.active .nav-label { color: var(--mb-primary); }
+    .nav-item.active .nav-icon { filter: drop-shadow(0 0 4px rgba(23,79,132,0.4)); }
+
+    .pb-nav { padding-bottom: 72px; }
+
+    /* ── Payment Flow ────────────────────── */
+    .payment-title {
+      font-size: 18px; font-weight: 800; color: #112945;
+      text-align: center; margin-bottom: 20px;
+      position: relative; padding-bottom: 10px;
+      border-bottom: 1.5px solid var(--bank-border);
+    }
+    .payment-back {
+      position: absolute; left: 0; top: 2px;
+      font-size: 20px; cursor: pointer; color: var(--mb-primary);
+    }
+    .confirm-details {
+      background: #f7f8fa; border: 1.5px solid var(--bank-border);
+      border-radius: 16px; padding: 20px; margin-bottom: 20px;
+    }
+    .confirm-row {
+      display: flex; justify-content: space-between; border-bottom: 1px dashed #e3e6eb; padding: 10px 0;
+    }
+    .confirm-row:last-child { border-bottom: none; }
+    .confirm-label { font-size: 12px; color: var(--bank-muted); }
+    .confirm-value {
+      font-size: 13px; font-weight: 600; color: #1e2d3d; text-align: right;
+      word-break: break-word;
+      max-width: 65%;
+    }
+    .confirm-value.danger { color: var(--bank-danger); }
+    .confirm-value.success { color: var(--bank-success); }
+
+    .pin-container {
+      display: flex; justify-content: center; gap: 8px; margin: 24px 0;
+    }
+    .pin-box {
+      width: 44px; height: 44px; border: 1.5px solid var(--bank-border);
+      border-radius: 10px; background: white;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; font-weight: 700; color: var(--mb-primary);
+    }
+    .pin-box.filled { border-color: var(--mb-primary); box-shadow: 0 0 0 2px rgba(23,79,132,0.15); }
+
+    .num-keyboard {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+      max-width: 320px; margin: 20px auto 10px;
+    }
+    .btn-key {
+      background: white; border: 1.5px solid var(--bank-border);
+      border-radius: 12px; padding: 14px; font-size: 18px; font-weight: 700;
+      color: var(--bank-text); cursor: pointer; transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .btn-key:hover { background: #f7f8fa; border-color: #9db2c6; }
+    .btn-key:active { transform: scale(0.95); }
+  </style>
+</head>
+<body>
+
+<!-- Top Bar -->
+<nav class="topbar">
+  <div class="bank-logo">
+    <div class="bank-logo-icon">Z</div>
+    <div>
+      <div class="bank-name">ZUNO<span>Bank</span></div>
+      <div class="bank-tagline">Powered by ZUNO Wallet · AI Finance</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <button onclick="showResetModal()" style="
+      background: rgba(234,88,12,0.85); color: white; border: none;
+      border-radius: 12px; padding: 4px 8px;
+      font-size: 10px; font-weight: 700; cursor: pointer;
+      font-family: 'Inter', sans-serif; letter-spacing: 0.3px;
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.2);
+    " title="Reset demo to 5,000,000 ₫">🔄 Reset</button>
+    <div class="zuno-status" id="zunoStatus">
+      <div class="status-dot" id="statusDot"></div>
+      <span id="statusText">ZUNO...</span>
+    </div>
+  </div>
+</nav>
+
+<!-- Connecting Overlay -->
+<div class="connecting-overlay" id="connectingOverlay">
+  <div class="connecting-spinner"></div>
+  <div class="connecting-text">Connecting to ZUNO...</div>
+  <div class="connecting-sub">Loading your account information</div>
+</div>
+
+<!-- Disconnect Confirm Modal -->
+<div class="modal-overlay" id="disconnectModal">
+  <div class="modal-card">
+    <div class="modal-icon">🔗</div>
+    <div class="modal-title">Disconnect ZUNO?</div>
+    <div class="modal-body">
+      Are you sure you want to disconnect ZUNO Bank from ZUNO Wallet? Once disconnected, transactions will no longer be pushed to ZUNO.
+    </div>
+    <div class="modal-warn">
+      ⚠️ Transaction history in this demo session will be cleared. Data on ZUNO will remain intact.
+    </div>
+    <div class="modal-actions">
+      <button class="btn-modal-confirm" onclick="confirmDisconnect()">🔓 Confirm Disconnect</button>
+      <button class="btn-modal-cancel" onclick="hideDisconnectModal()">Keep Connection</button>
+    </div>
+  </div>
+</div>
+
+<!-- Reset MVP Confirm Modal -->
+<div class="modal-overlay" id="resetModal">
+  <div class="modal-card reset-confirm-modal">
+    <div class="modal-icon" style="background:linear-gradient(135deg,#ea580c,#f97316);color:white">🔄</div>
+    <div class="modal-title">Reset Demo?</div>
+    <div class="modal-body">
+      This will clear all demo session data and restore the account to its initial state — ready for the next demo session.
+    </div>
+    <div class="modal-warn">
+      ⚠️ All transactions on ZUNO will be permanently deleted. Balance resets to <strong>5,000,000 ₫</strong>. This action cannot be undone!
+    </div>
+    <div class="modal-actions">
+      <button class="btn-modal-confirm-orange" onclick="confirmReset()">🔄 Confirm Reset</button>
+      <button class="btn-modal-cancel" onclick="hideResetModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ZUNO Connect Suggestion Modal -->
+<div class="modal-overlay" id="zunoSuggestModal">
+  <div class="modal-card" style="position: relative; max-width: 320px;">
+    <button onclick="hideZunoSuggestModal()" style="position: absolute; top: 16px; right: 16px; background: transparent; border: none; font-size: 20px; cursor: pointer; color: #9db2c6; font-weight: bold; padding: 4px; line-height: 1;">✕</button>
+    <div class="modal-icon" style="background: linear-gradient(135deg, #174f84, #4d78a8); color: white;">🤖</div>
+    <div class="modal-title" style="margin-top: 10px;">Are you overspending?</div>
+    <div class="modal-body" style="font-size: 13px; color: #546982; line-height: 1.5; margin-bottom: 20px;">
+      You are making transactions but your account is not linked to <strong>ZUNO Wallet</strong>.
+      <br/><br/>
+      Connect to ZUNO now to let AI help you manage 5 budget funds and automatically warn you when spending exceeds the limit!
+    </div>
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" onclick="hideZunoSuggestModal()" style="width: 100%;">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Main App -->
+<div class="app-container pb-nav">
+
+  <div id="mainBankContent">
+    <!-- Account Hero Card -->
+    <div class="account-hero">
+    <div class="account-hero-top">
+      <div class="account-label">Payment Account</div>
+      <div class="account-type-badge">VISA DEBIT</div>
+    </div>
+    <div class="account-number">•••• •••• •••• 4291</div>
+    <div class="account-holder">NGUYEN VAN A</div>
+    <div class="balance-section">
+      <div class="balance-label">Available Balance</div>
+      <div>
+        <span class="balance-amount" id="heroBalance">5.000.000</span>
+        <span class="balance-currency">₫</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="quick-actions">
+    <div class="quick-action">
+      <div class="quick-action-icon" style="background:#e8f0fb">💸</div>
+      <div class="quick-action-label">Transfer</div>
+    </div>
+    <div class="quick-action">
+      <div class="quick-action-icon" style="background:#eef4ff">📥</div>
+      <div class="quick-action-label">Receive</div>
+    </div>
+    <div class="quick-action">
+      <div class="quick-action-icon" style="background:#f0fdf4">💳</div>
+      <div class="quick-action-label">Pay</div>
+    </div>
+    <div class="quick-action">
+      <div class="quick-action-icon" style="background:#f0f7ff">📊</div>
+      <div class="quick-action-label">Statement</div>
+    </div>
+  </div>
+
+  <!-- ZUNO Connect Banner (shown when not connected) -->
+  <div id="zunoConnectBanner" class="zuno-connect-banner">
+    <div class="zuno-banner-top">
+      <div class="zuno-banner-logo">Z</div>
+      <div class="zuno-banner-text">
+        <div class="zuno-banner-title">Connect ZUNO Wallet</div>
+        <div class="zuno-banner-sub">Smart AI Budget Tracker</div>
+      </div>
+    </div>
+    <div class="zuno-features">
+      <div class="zuno-feature-item">
+        <span class="zuno-feature-icon">🤖</span>
+        <span>AI automatically categorizes all your transactions</span>
+      </div>
+      <div class="zuno-feature-item">
+        <span class="zuno-feature-icon">📊</span>
+        <span>Track 5 budget funds, warn when overspending</span>
+      </div>
+      <div class="zuno-feature-item">
+        <span class="zuno-feature-icon">🎮</span>
+        <span>Gamified savings — earn reward points weekly</span>
+      </div>
+    </div>
+    <button class="btn-connect-zuno" id="btnConnectZuno" onclick="connectToZuno()">
+      <span>⚡</span>
+      <span>Connect ZUNO Now</span>
+    </button>
+  </div>
+
+  <!-- ZUNO Connected Banner (shown when connected) -->
+  <div id="zunoConnectedBanner" class="zuno-connected-banner" style="display:none">
+    <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
+      <div class="zuno-connected-icon">✅</div>
+      <div class="zuno-connected-text">
+        <div class="zuno-connected-title">ZUNO Connected</div>
+        <div class="zuno-connected-sub">Transactions are tracked in real-time</div>
+      </div>
+    </div>
+    <div class="zuno-connected-actions">
+      <button class="btn-view-zuno" onclick="openZuno()">📱 Open ZUNO</button>
+      <button class="btn-disconnect-zuno" onclick="showDisconnectModal()">🔗 Disconnect</button>
+    </div>
+  </div>
+
+  <!-- Transaction Form -->
+  <div id="txFormSection">
+    <div class="section-header">
+      <div class="section-title">💳 Create Demo Transaction</div>
+    </div>
+
+    <div class="tx-form-card">
+      <div class="form-title">📤 New Payment Transaction</div>
+
+      <div style="margin-bottom:10px;">
+        <div class="form-label">Quick Select</div>
+        <div class="merchant-presets">
+          <span class="merchant-tag" onclick="fillMerchant('Highlands Coffee', 55000, 'food')">☕ Highlands</span>
+          <span class="merchant-tag" onclick="fillMerchant('Circle K', 35000, 'food')">🏪 Circle K</span>
+          <span class="merchant-tag" onclick="fillMerchant('Grab', 45000, 'transport')">🚗 Grab</span>
+          <span class="merchant-tag" onclick="fillMerchant('Shopee', 150000, 'shopping')">🛍️ Shopee</span>
+          <span class="merchant-tag" onclick="fillMerchant('CGV', 200000, 'entertainment')">🎬 CGV</span>
+          <span class="merchant-tag" onclick="fillMerchant('Beef Noodle 46', 45000, 'food')">🍜 Beef Noodle</span>
+          <span class="merchant-tag" onclick="fillMerchant('Gym Center', 300000, 'growth')">💪 Gym</span>
+          <span class="merchant-tag" onclick="fillMerchant('House Rent', 2000000, 'living')">🏠 House Rent</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Recipient Name / Merchant</label>
+        <input class="form-control" id="merchantName" type="text" placeholder="e.g. Highlands Coffee" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Amount</label>
+        <div class="amount-wrapper">
+          <span class="amount-prefix">₫</span>
+          <input class="form-control" id="txAmount" type="number" placeholder="55000" min="1000" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <input class="form-control" id="txDesc" type="text" placeholder="e.g. Pay for coffee" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Transaction Date</label>
+        <input class="form-control" id="txDate" type="datetime-local" value="2026-06-07T15:00" />
+      </div>
+
+      <button class="btn-submit" id="submitBtn" onclick="handleSubmitTx()">
+        <span>📤</span>
+        <span>Send Payment → ZUNO</span>
+      </button>
+    </div>
+
+    <!-- Autoplay bar -->
+    <div class="autoplay-bar">
+      <button class="btn-auto-play" id="autoPlayBtn" onclick="triggerOverflowDemo()">💥 Demo 200k Overflow</button>
+      <button class="btn-clear-tx" onclick="clearFeed()">🗑️ Clear History</button>
+      <button class="btn-reset-mvp" onclick="showResetModal()" title="Reset entire demo to initial state">🔄 Reset MVP</button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-bar" id="statsBar" style="display:none">
+    <div class="stat-item">
+      <div class="stat-value" id="statTotal">0</div>
+      <div class="stat-label">Sent</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value" style="color:var(--bank-success)" id="statSuccess">0</div>
+      <div class="stat-label">Success</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value" style="color:var(--bank-danger)" id="statError">0</div>
+      <div class="stat-label">Failed</div>
+    </div>
+  </div>
+
+  <!-- Transaction Feed -->
+  <div class="tx-feed" id="txFeed">
+    <!-- Populated by JS -->
+  </div>
+
+  </div> <!-- closes mainBankContent -->
+
+  <!-- Payment Flow Section -->
+  <div id="paymentFlowSection" style="display: none; padding: 16px;">
+    
+    <!-- Screen 1: Confirmation -->
+    <div id="paymentConfirmScreen">
+      <h2 class="payment-title">
+        <span class="payment-back" onclick="backToMainBank()">←</span>
+        Domestic Transfer
+      </h2>
+
+      <!-- Warning Banner if overflow -->
+      <div id="overflowWarningBanner" class="modal-warn" style="display: none; margin-bottom: 20px; background: #fff5f5; border: 1.5px solid #fca5a5; color: #dc2626; border-radius: 12px; padding: 12px 14px; font-size: 13px; line-height: 1.5;">
+        ⚠️ <strong>Overlimit Warning:</strong> This expense will trigger the overflow mechanism of your Food fund on ZUNO!
+      </div>
+      
+      <div class="modal-warn" id="infoConfirmBanner" style="margin-bottom: 20px; border-radius: 12px; padding: 12px 14px; font-size: 13px; line-height: 1.5; background: #eef4ff; border: 1.5px solid #bfdbfe; color: #174f84;">
+        ℹ️ Please review and confirm your transaction details
+      </div>
+
+      <div class="confirm-details">
+        <div class="confirm-row">
+          <span class="confirm-label">Transfer Type</span>
+          <span class="confirm-value">Fast Transfer 24/7</span>
+        </div>
+        <div class="confirm-row">
+          <span class="confirm-label">Source Account</span>
+          <span class="confirm-value">•••• •••• •••• 4291</span>
+        </div>
+        <div class="confirm-row">
+          <span class="confirm-label">Recipient Account</span>
+          <span class="confirm-value" id="confirmRecipAcc">ZUNO Wallet</span>
+        </div>
+        <div class="confirm-row">
+          <span class="confirm-label">Recipient Name</span>
+          <span class="confirm-value" id="confirmRecipName" style="color: var(--mb-primary);">NGUYEN VAN A</span>
+        </div>
+        <div class="confirm-row">
+          <span class="confirm-label">Description</span>
+          <span class="confirm-value" id="confirmDesc">-</span>
+        </div>
+        <div class="confirm-row">
+          <span class="confirm-label">Transfer Fee</span>
+          <span class="confirm-value" style="color: var(--bank-success);">Free</span>
+        </div>
+        <div class="confirm-row" style="border-bottom: none; padding-top: 15px;">
+          <span class="confirm-label" style="font-size: 14px; font-weight: 700;">Amount</span>
+          <span class="confirm-value" id="confirmAmount" style="font-size: 18px; font-weight: 800; color: var(--mb-dark);">0 ₫</span>
+        </div>
+      </div>
+
+      <!-- Action buttons -->
+      <div id="normalActions" style="display: block;">
+        <button class="btn-submit" onclick="goToOtpScreen()">Confirm</button>
+      </div>
+      <div id="overflowActions" style="display: none; gap: 10px;">
+        <button class="btn-disconnect-zuno" style="flex: 1; margin: 0; padding: 14px;" onclick="cancelPayment()">Cancel</button>
+        <button class="btn-submit" style="flex: 1; margin: 0; padding: 14px; background: linear-gradient(135deg, #ea580c, #f97316); box-shadow: 0 4px 12px rgba(234,88,12,0.3);" onclick="goToOtpScreen()">Bypass</button>
+      </div>
+    </div>
+
+    <!-- Screen 2: OTP / PIN Verification -->
+    <div id="paymentOtpScreen" style="display: none;">
+      <h2 class="payment-title">
+        <span class="payment-back" onclick="backToConfirmScreen()">←</span>
+        Verify Transaction
+      </h2>
+
+      <div style="text-align: center; margin: 10px 0;">
+        <div style="font-size: 36px; margin-bottom: 10px;">🛡️</div>
+        <p style="font-size: 14px; font-weight: 700; color: #112945; margin-bottom: 5px;">Verify Transaction</p>
+        <p style="font-size: 12px; color: var(--bank-muted); line-height: 1.5; padding: 0 20px;">
+          Please enter your 6-digit Smart OTP PIN to verify the transaction.
+        </p>
+      </div>
+
+      <!-- PIN boxes -->
+      <div class="pin-container">
+        <div class="pin-box" id="pinBox0"></div>
+        <div class="pin-box" id="pinBox1"></div>
+        <div class="pin-box" id="pinBox2"></div>
+        <div class="pin-box" id="pinBox3"></div>
+        <div class="pin-box" id="pinBox4"></div>
+        <div class="pin-box" id="pinBox5"></div>
+      </div>
+
+      <button class="btn-submit" id="btnOtpContinue" style="margin-top: 10px; width: 100%; opacity: 0.5; cursor: not-allowed;" onclick="submitPaymentWithOtp()" disabled>Continue</button>
+      
+      <p style="font-size: 11px; color: var(--bank-muted); text-align: center; margin-top: 15px; line-height: 1.4; padding: 0 10px;">
+        ⚠️ Smart OTP will be locked if you enter the wrong PIN 5 consecutive times.
+      </p>
+
+      <!-- Keyboard -->
+      <div class="num-keyboard">
+        <button class="btn-key" onclick="pressKey('1')">1</button>
+        <button class="btn-key" onclick="pressKey('2')">2</button>
+        <button class="btn-key" onclick="pressKey('3')">3</button>
+        <button class="btn-key" onclick="pressKey('4')">4</button>
+        <button class="btn-key" onclick="pressKey('5')">5</button>
+        <button class="btn-key" onclick="pressKey('6')">6</button>
+        <button class="btn-key" onclick="pressKey('7')">7</button>
+        <button class="btn-key" onclick="pressKey('8')">8</button>
+        <button class="btn-key" onclick="pressKey('9')">9</button>
+        <button class="btn-key" style="background: transparent; border: none; cursor: default;"></button>
+        <button class="btn-key" onclick="pressKey('0')">0</button>
+        <button class="btn-key" onclick="pressKey('backspace')">⌫</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Bottom Nav -->
+<div class="bottom-nav">
+  <div class="nav-item active">
+    <div class="nav-icon">🏠</div>
+    <div class="nav-label" style="color:var(--mb-primary)">Home</div>
+  </div>
+  <div class="nav-item">
+    <div class="nav-icon">💳</div>
+    <div class="nav-label">Cards</div>
+  </div>
+  <div class="nav-item" onclick="openZuno()" style="cursor:pointer">
+    <div class="nav-icon">Z</div>
+    <div class="nav-label">ZUNO</div>
+  </div>
+  <div class="nav-item">
+    <div class="nav-icon">📊</div>
+    <div class="nav-label">Reports</div>
+  </div>
+  <div class="nav-item">
+    <div class="nav-icon">👤</div>
+    <div class="nav-label">Me</div>
+  </div>
+</div>
+
+<script>
+// ── Config ────────────────────────────────────────────────────
+function getZunoApiBase() {
+  if (typeof window !== 'undefined' && window.location) {
+    const protocol = window.location.protocol;
+    const origin = window.location.origin;
+    if (protocol.startsWith('http')) {
+      return `${origin}/api`;
+    }
+  }
+  return 'http://localhost:5000/api';
+}
+
+function getZunoFrontendUrl() {
+  if (typeof window !== 'undefined' && window.location) {
+    const protocol = window.location.protocol;
+    if (protocol.startsWith('http')) {
+      return window.location.origin;
+    }
+  }
+  return 'http://localhost:3000';
+}
+
+const CONFIG = {
+  zunoApiBase: getZunoApiBase(),
+  webhookSecret: 'mock-bank-secret-2024',
+  mbBankId: 'mbb',
+  // Bank manages its own balance — independent of ZUNO
+  currentBalance: 5_000_000,
+};
+
+// ── State ────────────────────────────────────────────────────
+let isConnected = false;
+let zunoUserId = null;
+let transactions = [];
+let stats = { total: 0, success: 0, error: 0 };
+
+// ── LocalStorage Helpers for Persistence ─────────────────────
+function saveLocalState() {
+  localStorage.setItem('mb:current-balance', CONFIG.currentBalance);
+  localStorage.setItem('mb:transactions', JSON.stringify(transactions));
+  localStorage.setItem('mb:stats', JSON.stringify(stats));
+}
+
+function loadLocalState() {
+  const storedBalance = localStorage.getItem('mb:current-balance');
+  if (storedBalance !== null) {
+    CONFIG.currentBalance = parseInt(storedBalance, 10);
+  }
+  const storedTx = localStorage.getItem('mb:transactions');
+  if (storedTx !== null) {
+    try {
+      transactions = JSON.parse(storedTx);
+      // Restore Date objects
+      transactions.forEach(t => {
+        if (t.time) t.time = new Date(t.time);
+      });
+    } catch (e) {
+      transactions = [];
+    }
+  }
+  const storedStats = localStorage.getItem('mb:stats');
+  if (storedStats !== null) {
+    try {
+      stats = JSON.parse(storedStats);
+    } catch (e) {
+      stats = { total: 0, success: 0, error: 0 };
+    }
+  }
+}
+
+function clearLocalState() {
+  localStorage.removeItem('mb:current-balance');
+  localStorage.removeItem('mb:transactions');
+  localStorage.removeItem('mb:stats');
+  CONFIG.currentBalance = 5_000_000;
+  transactions = [];
+  stats = { total: 0, success: 0, error: 0 };
+}
+let autoPlayInterval = null;
+let demoIndex = 0;
+
+const FUND_EMOJI = { food: '🍔', living: '🏠', growth: '📚', experience: '✈️', future: '💎' };
+const FUND_COLOR = { food: '#ea580c', living: '#4f46e5', growth: '#16a34a', experience: '#9333ea', future: '#d97706' };
+const METHOD_LABEL = { llm: 'AI Analyzed', exact_match: 'Keyword', regex: 'Regex', fuzzy: 'Fuzzy', fallback: 'Fallback', default: 'Default' };
+
+const DEMO_SCRIPT = [
+  { merchantName: 'Highlands Coffee', amount: 55000, description: 'Trà sen vàng', bankCategory: 'food' },
+  { merchantName: 'Circle K', amount: 35000, description: 'Mua đồ ăn sáng', bankCategory: 'food' },
+  { merchantName: 'Grab', amount: 45000, description: 'Đi lại GrabBike', bankCategory: 'transport' },
+  { merchantName: 'Shopee', amount: 150000, description: 'Mua sắm online', bankCategory: 'shopping' },
+  { merchantName: 'CGV', amount: 200000, description: 'Xem phim cuối tuần', bankCategory: 'entertainment' },
+  { merchantName: 'Bún bò 46', amount: 45000, description: 'Ăn trưa', bankCategory: 'food' },
+  { merchantName: 'Gym Center', amount: 300000, description: 'Phí tháng tập gym', bankCategory: 'growth' },
+];
+
+// ── Init ─────────────────────────────────────────────────────
+async function init() {
+  loadLocalState(); // Load persisted balance, feed, and stats
+  // Balance is always shown from startup — bank manages its own balance
+  document.getElementById('heroBalance').textContent =
+    CONFIG.currentBalance.toLocaleString('vi-VN');
+  renderFeed();
+  updateStats();
+  await checkZunoStatus();
+
+  try {
+    const resp = await fetch(`${CONFIG.zunoApiBase}/webhook/users`, {
+      headers: { 'x-webhook-secret': CONFIG.webhookSecret },
+      signal: AbortSignal.timeout(3000),
+    });
+    if (resp.ok) {
+      const users = await resp.json();
+      const defaultUser = users.find(u => u.email === 'default@zuno.com') || users[0];
+      if (defaultUser && defaultUser.profile && defaultUser.profile.bankAccountId) {
+        // Still connected on ZUNO side — restore session
+        zunoUserId = defaultUser.id;
+        sessionStorage.setItem('mb:zuno-user-id', zunoUserId);
+        setConnectedState(true);
+        return;
+      }
+    }
+  } catch (e) { /* ignore */ }
+
+  // Clear session if not connected or ZUNO offline
+  sessionStorage.removeItem('mb:zuno-user-id');
+  zunoUserId = null;
+  setConnectedState(false);
+}
+
+async function checkZunoStatus() {
+  const dot = document.getElementById('statusDot');
+  const text = document.getElementById('statusText');
+  try {
+    const resp = await fetch(`${CONFIG.zunoApiBase}/health`, { signal: AbortSignal.timeout(3000) });
+    if (resp.ok) {
+      dot.classList.remove('offline');
+      text.textContent = 'ZUNO';
+    } else { throw new Error(); }
+  } catch {
+    dot.classList.add('offline');
+    text.textContent = 'Offline';
+  }
+}
+
+// ── Fetch real balance from ZUNO backend ─────────────────────
+async function fetchAndUpdateBalance(userId) {
+  try {
+    const resp = await fetch(`${CONFIG.zunoApiBase}/webhook/users`, {
+      headers: { 'x-webhook-secret': CONFIG.webhookSecret },
+    });
+    if (!resp.ok) return;
+    const users = await resp.json();
+    const user = users.find(u => u.id === userId);
+    if (user && user.profile && user.profile.bankBalance !== undefined) {
+      // bankBalance comes as string (BigInt serialized)
+      const balance = parseInt(user.profile.bankBalance, 10);
+      if (!isNaN(balance)) {
+        CONFIG.currentBalance = balance;
+        saveLocalState();
+        document.getElementById('heroBalance').textContent =
+          balance.toLocaleString('vi-VN');
+      }
+    }
+  } catch (e) {
+    console.warn('Could not fetch balance:', e);
+  }
+}
+
+async function connectToZuno() {
+  const btn = document.getElementById('btnConnectZuno');
+  btn.disabled = true;
+  btn.classList.add('loading');
+  btn.innerHTML = '<span>⏳</span><span>Connecting...</span>';
+
+  // Show waiting overlay
+  const overlayText = document.getElementById('connectingOverlay').querySelector('.connecting-text');
+  const overlaySub  = document.getElementById('connectingOverlay').querySelector('.connecting-sub');
+  overlayText.textContent = 'Opening ZUNO...';
+  overlaySub.textContent  = 'Please link your bank account on ZUNO to continue';
+  document.getElementById('connectingOverlay').classList.add('visible');
+
+  try {
+    // 1. Get default ZUNO user ID
+    const usersResp = await fetch(`${CONFIG.zunoApiBase}/webhook/users`, {
+      headers: { 'x-webhook-secret': CONFIG.webhookSecret },
+    });
+    if (!usersResp.ok) throw new Error('Unable to connect to ZUNO backend');
+    const users = await usersResp.json();
+    if (!users || users.length === 0) throw new Error('ZUNO account not found. Please log in to ZUNO first!');
+
+    const defaultUser = users.find(u => u.email === 'default@zuno.com') || users[0];
+    const userId = defaultUser.id;
+    zunoUserId = userId;
+    sessionStorage.setItem('mb:zuno-user-id', userId);
+
+    // 2. Open ZUNO budgets page in new tab
+    window.open(getZunoFrontendUrl() + '/budgets', '_blank');
+
+    // 3. Update overlay to "waiting" state
+    overlayText.textContent = '⏳ Waiting for ZUNO connection...';
+    overlaySub.textContent  = 'Go to ZUNO → Connect Bank Account → choose ZUNO Bank Demo';
+
+    // 4. Poll every 2s until bankAccountId is set (ZUNO side connected)
+    await pollUntilConnected(userId);
+
+  } catch (err) {
+    document.getElementById('connectingOverlay').classList.remove('visible');
+    overlayText.textContent = 'Connecting to ZUNO...';
+    overlaySub.textContent  = 'Loading your account details...';
+    showToast('error', '❌ Connection Failed', err.message || 'Unable to connect to ZUNO');
+    btn.disabled = false;
+    btn.classList.remove('loading');
+    btn.innerHTML = '<span>⚡</span><span>Connect ZUNO Now</span>';
+    zunoUserId = null;
+    sessionStorage.removeItem('mb:zuno-user-id');
+  }
+}
+
+async function pollUntilConnected(userId) {
+  const MAX_WAIT_MS  = 5 * 60 * 1000; // 5 minutes timeout
+  const INTERVAL_MS  = 2000;
+  const started      = Date.now();
+  const overlayText  = document.getElementById('connectingOverlay').querySelector('.connecting-text');
+  const overlaySub   = document.getElementById('connectingOverlay').querySelector('.connecting-sub');
+  const btn          = document.getElementById('btnConnectZuno');
+
+  while (Date.now() - started < MAX_WAIT_MS) {
+    await new Promise(r => setTimeout(r, INTERVAL_MS));
+
+    try {
+      const resp  = await fetch(`${CONFIG.zunoApiBase}/webhook/users`, {
+        headers: { 'x-webhook-secret': CONFIG.webhookSecret },
+      });
+      if (!resp.ok) continue;
+      const users = await resp.json();
+      const user  = users.find(u => u.id === userId);
+      if (!user) continue;
+
+      // Check if ZUNO side has linked a bank account
+      if (user.profile && user.profile.bankAccountId) {
+        // Connected! Bank balance stays independent — don't touch it
+
+        // Clear feed for fresh start
+        transactions = [];
+        stats = { total: 0, success: 0, error: 0 };
+        updateStats();
+        renderFeed();
+
+        // Hide overlay and update UI
+        document.getElementById('connectingOverlay').classList.remove('visible');
+        overlayText.textContent = 'Connecting to ZUNO...';
+        overlaySub.textContent  = 'Loading your account details...';
+        setConnectedState(true);
+
+        showToast('success', '✅ ZUNO Linked Successfully!', 'Transactions will be pushed to ZUNO Wallet in real-time');
+        return; // Done!
+      }
+
+      // Update dots animation so user knows it's still checking
+      const dots = '.'.repeat(((Date.now() - started) / 1000 | 0) % 4);
+      overlaySub.textContent = `Waiting for connection on ZUNO${dots}`;
+
+    } catch (e) {
+      // Network hiccup, keep polling
+    }
+  }
+
+  // Timeout
+  document.getElementById('connectingOverlay').classList.remove('visible');
+  overlayText.textContent = 'Connecting to ZUNO...';
+  overlaySub.textContent  = 'Loading your account details...';
+  showToast('error', '⏰ Timeout', 'No connection received from ZUNO after 5 minutes');
+  btn.disabled = false;
+  btn.classList.remove('loading');
+  btn.innerHTML = '<span>⚡</span><span>Connect ZUNO Now</span>';
+  zunoUserId = null;
+  sessionStorage.removeItem('mb:zuno-user-id');
+}
+
+function openZuno() {
+  window.open(getZunoFrontendUrl() + '/budgets', '_blank');
+}
+
+function setConnectedState(connected) {
+  isConnected = connected;
+  document.getElementById('zunoConnectBanner').style.display = connected ? 'none' : 'block';
+  document.getElementById('zunoConnectedBanner').style.display = connected ? 'flex' : 'none';
+  document.getElementById('statsBar').style.display = connected ? 'grid' : 'none';
+}
+
+// ── Fill Merchant Quick Select ───────────────────────────────
+function fillMerchant(name, amount, category) {
+  document.getElementById('merchantName').value = name;
+  document.getElementById('txAmount').value = amount;
+  document.getElementById('txDesc').value = '';
+}
+
+// ── Submit Transaction ───────────────────────────────────────
+async function handleSubmitTx() {
+  if (!isConnected || !zunoUserId) {
+    showZunoSuggestModal();
+    return;
+  }
+
+  const merchantName = document.getElementById('merchantName').value.trim();
+  const amount = parseInt(document.getElementById('txAmount').value);
+  const description = document.getElementById('txDesc').value.trim() || merchantName;
+  const transactionDate = document.getElementById('txDate').value;
+
+  if (!merchantName || !amount || amount < 1000) {
+    showToast('error', '⚠️ Missing info', 'Please enter a valid merchant name and amount (≥ 1,000₫)');
+    return;
+  }
+
+  await startPaymentFlow(merchantName, amount, description, undefined, transactionDate);
+}
+
+// ── Auto Play / Overflow Trigger ──────────────────────────────
+async function triggerOverflowDemo() {
+  if (!isConnected || !zunoUserId) {
+    showZunoSuggestModal();
+    return;
+  }
+  
+  const transactionDate = document.getElementById('txDate')?.value || '2026-06-07T15:00';
+  await startPaymentFlow('Nhà hàng nướng BBQ', 200000, 'Bữa tối buffet nướng 200k', 'food', transactionDate);
+}
+
+// ── Payment Flow State & Functions ────────────────────────────
+let currentPendingTx = null;
+let otpCode = '';
+let isOverflowTx = false;
+
+async function startPaymentFlow(merchantName, amount, description, bankCategory, transactionDate) {
+  if (!isConnected || !zunoUserId) {
+    showZunoSuggestModal();
+    return;
+  }
+
+  // Save pending transaction details
+  currentPendingTx = { merchantName, amount, description, bankCategory, transactionDate };
+  otpCode = '';
+
+  // Show loading indicator
+  const btn = document.getElementById('submitBtn');
+  const dbtn = document.getElementById('autoPlayBtn');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span>⏳</span><span>Đang xử lý...</span>'; }
+  if (dbtn) { dbtn.disabled = true; dbtn.textContent = '⏳ Đang xử lý...'; }
+
+  try {
+    // Call preview endpoint to check if ZUNO side will overflow
+    const resp = await fetch(`${CONFIG.zunoApiBase}/webhook/preview-transaction`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-webhook-secret': CONFIG.webhookSecret,
+      },
+      body: JSON.stringify({
+        userId: zunoUserId,
+        merchantName,
+        amount,
+        description,
+        bankCategory,
+        transactionDate,
+      }),
+    });
+    
+    let willOverflow = false;
+    if (resp.ok) {
+      const data = await resp.json();
+      willOverflow = !!data.willOverflow;
+    } else {
+      // Local fallback check if backend is offline/error
+      if (bankCategory === 'food' && amount >= 200000) {
+        willOverflow = true;
+      }
+    }
+
+    isOverflowTx = willOverflow;
+
+    // Populate Details on Confirmation Screen
+    document.getElementById('confirmRecipAcc').textContent = 'ZUNO Wallet';
+    document.getElementById('confirmRecipName').textContent = 'NGUYEN VAN A';
+    document.getElementById('confirmDesc').textContent = description || merchantName;
+    document.getElementById('confirmAmount').textContent = amount.toLocaleString('vi-VN') + ' ₫';
+
+    // Show/hide overflow warnings & configure button styles
+    if (willOverflow) {
+      document.getElementById('overflowWarningBanner').style.display = 'block';
+      document.getElementById('infoConfirmBanner').style.display = 'none';
+      document.getElementById('confirmAmount').style.color = 'var(--bank-danger)';
+      document.getElementById('confirmRecipName').style.color = 'var(--bank-danger)';
+      document.getElementById('normalActions').style.display = 'none';
+      document.getElementById('overflowActions').style.display = 'flex';
+    } else {
+      document.getElementById('overflowWarningBanner').style.display = 'none';
+      document.getElementById('infoConfirmBanner').style.display = 'block';
+      document.getElementById('confirmAmount').style.color = 'var(--mb-dark)';
+      document.getElementById('confirmRecipName').style.color = 'var(--mb-primary)';
+      document.getElementById('normalActions').style.display = 'block';
+      document.getElementById('overflowActions').style.display = 'none';
+    }
+
+    // Toggle screens
+    document.getElementById('mainBankContent').style.display = 'none';
+    document.getElementById('paymentFlowSection').style.display = 'block';
+    
+    // Set to confirmation screen by default
+    document.getElementById('paymentConfirmScreen').style.display = 'block';
+    document.getElementById('paymentOtpScreen').style.display = 'none';
+
+  } catch (err) {
+    showToast('error', '❌ Connection Error', 'Unable to check ZUNO budget limits');
+    console.error(err);
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<span>📤</span><span>Send Payment → ZUNO</span>'; }
+    if (dbtn) { dbtn.disabled = false; dbtn.textContent = '💥 Demo 200k Overflow'; }
+  }
+}
+
+function cancelPayment() {
+  backToMainBank();
+  showToast('error', '❌ Payment Cancelled', 'Transaction was not executed');
+}
+
+function backToMainBank() {
+  document.getElementById('paymentFlowSection').style.display = 'none';
+  document.getElementById('mainBankContent').style.display = 'block';
+  currentPendingTx = null;
+}
+
+function goToOtpScreen() {
+  document.getElementById('paymentConfirmScreen').style.display = 'none';
+  document.getElementById('paymentOtpScreen').style.display = 'block';
+  resetOtpInput();
+}
+
+function backToConfirmScreen() {
+  document.getElementById('paymentOtpScreen').style.display = 'none';
+  document.getElementById('paymentConfirmScreen').style.display = 'block';
+}
+
+function resetOtpInput() {
+  otpCode = '';
+  updateOtpBoxes();
+}
+
+function updateOtpBoxes() {
+  for (let i = 0; i < 6; i++) {
+    const box = document.getElementById(`pinBox${i}`);
+    if (i < otpCode.length) {
+      box.textContent = '●';
+      box.classList.add('filled');
+    } else {
+      box.textContent = '';
+      box.classList.remove('filled');
+    }
+  }
+
+  const btn = document.getElementById('btnOtpContinue');
+  if (otpCode.length === 6) {
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.style.cursor = 'pointer';
+  } else {
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    btn.style.cursor = 'not-allowed';
+  }
+}
+
+function pressKey(key) {
+  if (key === 'backspace') {
+    otpCode = otpCode.slice(0, -1);
+  } else if (otpCode.length < 6) {
+    otpCode += key;
+  }
+  updateOtpBoxes();
+}
+
+async function submitPaymentWithOtp() {
+  if (!currentPendingTx) return;
+  const { merchantName, amount, description, bankCategory, transactionDate } = currentPendingTx;
+  
+  // Return to main bank UI
+  document.getElementById('paymentFlowSection').style.display = 'none';
+  document.getElementById('mainBankContent').style.display = 'block';
+  
+  currentPendingTx = null;
+  
+  // Submit the transaction for processing
+  await submitTransaction({ userId: zunoUserId, merchantName, amount, description, bankCategory, transactionDate });
+}
+
+async function submitTransaction(data) {
+  const { userId, merchantName, amount, description, bankCategory, transactionDate } = data;
+  const btn = document.getElementById('submitBtn');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span>⏳</span><span>Processing...</span>'; }
+
+  stats.total++;
+  updateStats();
+
+  const payload = {
+    userId,
+    merchantName,
+    amount,
+    description: description || merchantName,
+    bankCategory: bankCategory || undefined,
+    transactionDate: transactionDate ? new Date(transactionDate).toISOString() : new Date().toISOString(),
+    bankTransactionId: `mbb-${Date.now()}-${Math.random().toString(36).substr(2,6)}`,
+  };
+
+  try {
+    const resp = await fetch(`${CONFIG.zunoApiBase}/webhook/bank-transaction`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-webhook-secret': CONFIG.webhookSecret },
+      body: JSON.stringify(payload),
+    });
+    const resData = await resp.json();
+    if (!resp.ok) throw new Error(resData.error || `HTTP ${resp.status}`);
+
+    stats.success++;
+    updateStats();
+
+    // Deduct from display balance
+    CONFIG.currentBalance = Math.max(0, (CONFIG.currentBalance || 0) - amount);
+    document.getElementById('heroBalance').textContent = CONFIG.currentBalance.toLocaleString('vi-VN');
+
+    addToFeed({
+      status: resData.overflow?.triggered ? 'overflow' : 'success',
+      merchant: merchantName, amount,
+      category: resData.categorization?.category || 'N/A',
+      fundType: resData.categorization?.fundType || 'experience',
+      method: resData.categorization?.method || 'default',
+      confidence: resData.categorization?.confidence || 0,
+      overflow: resData.overflow,
+      time: transactionDate ? new Date(transactionDate) : new Date(),
+    });
+
+    if (resData.overflow?.triggered) {
+      showToast('overflow-warn', `⚠️ Overflow Triggered!`, `${merchantName} — ZUNO processing overflow`);
+    } else {
+      showToast('success', '✅ Transaction Successful', `-${amount.toLocaleString('vi-VN')} ₫ → ${merchantName}`);
+    }
+
+    // Clear form
+    document.getElementById('merchantName').value = '';
+    document.getElementById('txAmount').value = '';
+    document.getElementById('txDesc').value = '';
+
+  } catch (err) {
+    stats.error++;
+    updateStats();
+    addToFeed({ status: 'error', merchant: merchantName, amount, error: err.message, time: new Date() });
+    showToast('error', '❌ Transaction Failed', err.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<span>📤</span><span>Send Payment → ZUNO</span>'; }
+  }
+}
+
+// ── Feed ─────────────────────────────────────────────────────
+function addToFeed(tx) {
+  transactions.unshift(tx);
+  saveLocalState();
+  renderFeed();
+}
+
+function clearFeed() {
+  clearLocalState();
+  updateStats();
+  renderFeed();
+  // Refetch real balance to restore accurate value
+  if (zunoUserId) fetchAndUpdateBalance(zunoUserId);
+}
+
+function renderFeed() {
+  const feed = document.getElementById('txFeed');
+  if (transactions.length === 0) {
+    feed.innerHTML = `
+      <div class="empty-feed">
+        <div class="empty-feed-icon">📱</div>
+        <div class="empty-feed-text">No transactions yet</div>
+        <div class="empty-feed-sub">Connect to ZUNO and create transactions to see real-time integration</div>
+      </div>`;
+    return;
+  }
+
+  feed.innerHTML = transactions.slice(0, 30).map(tx => {
+    if (tx.status === 'error') {
+      return `
+        <div class="tx-item error">
+          <div class="tx-icon" style="background:#fef2f2">❌</div>
+          <div class="tx-info">
+            <div class="tx-merchant">${tx.merchant}</div>
+            <div class="tx-meta"><span style="color:var(--bank-danger)">${tx.error}</span></div>
+          </div>
+          <div class="tx-right">
+            <div class="tx-amount">-${tx.amount?.toLocaleString('vi-VN')} ₫</div>
+            <div class="tx-time">${formatTime(tx.time)}</div>
+          </div>
+        </div>`;
+    }
+    const fundType = tx.fundType || 'experience';
+    const emoji = FUND_EMOJI[fundType] || '💳';
+    const overflowBadge = tx.overflow?.triggered
+      ? `<span class="overflow-badge">⚠️ OVERFLOW</span>` : '';
+    return `
+      <div class="tx-item ${tx.status}">
+        <div class="tx-icon" style="background:${hexToRgba(FUND_COLOR[fundType] || '#999', 0.12)}">${emoji}</div>
+        <div class="tx-info">
+          <div class="tx-merchant">${tx.merchant}</div>
+          <div class="tx-meta">
+            <span class="fund-badge fund-${fundType}">${fundType}</span>
+            <span class="method-badge">${METHOD_LABEL[tx.method] || tx.method}</span>
+            <span>${Math.round((tx.confidence||0)*100)}%</span>
+            ${overflowBadge}
+          </div>
+        </div>
+        <div class="tx-right">
+          <div class="tx-amount">-${tx.amount?.toLocaleString('vi-VN')} ₫</div>
+          <div class="tx-time">${formatTime(tx.time)}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ── Stats ─────────────────────────────────────────────────────
+function updateStats() {
+  document.getElementById('statTotal').textContent = stats.total;
+  document.getElementById('statSuccess').textContent = stats.success;
+  document.getElementById('statError').textContent = stats.error;
+}
+
+// ── Toast ─────────────────────────────────────────────────────
+function showToast(type, title, body) {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `<div class="toast-title">${title}</div><div class="toast-body">${body}</div>`;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 4000);
+}
+
+// ── Utils ─────────────────────────────────────────────────────
+function formatTime(date) {
+  return new Date(date).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+}
+
+function hexToRgba(hex, alpha) {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result
+    ? `rgba(${parseInt(result[1],16)},${parseInt(result[2],16)},${parseInt(result[3],16)},${alpha})`
+    : `rgba(128,128,128,${alpha})`;
+}
+
+// ── Disconnect Modal ──────────────────────────────────────────
+function showDisconnectModal() {
+  document.getElementById('disconnectModal').classList.add('visible');
+}
+
+function hideDisconnectModal() {
+  document.getElementById('disconnectModal').classList.remove('visible');
+}
+
+async function confirmDisconnect() {
+  hideDisconnectModal();
+
+  // Stop autoplay if running
+  if (autoPlayInterval) {
+    clearInterval(autoPlayInterval);
+    autoPlayInterval = null;
+  }
+  const btn = document.getElementById('autoPlayBtn');
+  if (btn) { btn.textContent = '💥 Demo lố 200k'; btn.disabled = false; }
+
+  // Call backend to unlink
+  if (zunoUserId) {
+    try {
+      await fetch(`${CONFIG.zunoApiBase}/webhook/disconnect-demo`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-webhook-secret': CONFIG.webhookSecret,
+        },
+        body: JSON.stringify({ userId: zunoUserId }),
+      });
+      // Broadcast disconnect to ZUNO tab
+      const channel = new BroadcastChannel('zuno-demo-channel');
+      channel.postMessage({ type: 'disconnect' });
+      channel.close();
+    } catch (e) {
+      console.warn('Could not notify ZUNO backend about disconnect:', e);
+    }
+  }
+
+  // Clear session
+  sessionStorage.removeItem('mb:zuno-user-id');
+  zunoUserId = null;
+
+  // Clear feed and stats (transactions are gone, but balance stays)
+  transactions = [];
+  stats = { total: 0, success: 0, error: 0 };
+  updateStats();
+  renderFeed();
+  // NOTE: Balance (heroBalance) is kept as-is — mock-bank balance is independent of ZUNO connection
+
+  // Restore UI to disconnected state
+  setConnectedState(false);
+
+  // Re-enable connect button
+  const btnConnect = document.getElementById('btnConnectZuno');
+  if (btnConnect) {
+    btnConnect.disabled = false;
+    btnConnect.classList.remove('loading');
+    btnConnect.innerHTML = '<span>⚡</span><span>Connect ZUNO Now</span>';
+  }
+
+  showToast('success', '🔓 Disconnected', 'ZUNOBank has disconnected from ZUNO Wallet');
+}
+
+// ── Suggest ZUNO Modal ────────────────────────────────────────
+function showZunoSuggestModal() {
+  document.getElementById('zunoSuggestModal').classList.add('visible');
+}
+
+function hideZunoSuggestModal() {
+  document.getElementById('zunoSuggestModal').classList.remove('visible');
+}
+
+function confirmZunoSuggestConnect() {
+  hideZunoSuggestModal();
+  connectToZuno();
+}
+
+// ── Reset MVP Modal ───────────────────────────────────────────
+function showResetModal() {
+  document.getElementById('resetModal').classList.add('visible');
+}
+
+function hideResetModal() {
+  document.getElementById('resetModal').classList.remove('visible');
+}
+
+async function confirmReset() {
+  hideResetModal();
+
+  // Show connecting overlay as visual feedback
+  document.getElementById('connectingOverlay').querySelector('.connecting-text').textContent = '🔄 Resetting demo...';
+  document.getElementById('connectingOverlay').querySelector('.connecting-sub').textContent = 'Clearing data and restoring 5,000,000 ₫ balance';
+  document.getElementById('connectingOverlay').classList.add('visible');
+
+  try {
+    let resetUserId = zunoUserId;
+    if (!resetUserId) {
+      const usersResp = await fetch(`${CONFIG.zunoApiBase}/webhook/users`, {
+        headers: { 'x-webhook-secret': CONFIG.webhookSecret },
+      });
+      if (usersResp.ok) {
+        const users = await usersResp.json();
+        const defaultUser = users.find(u => u.email === 'default@zuno.com') || users[0];
+        if (defaultUser) resetUserId = defaultUser.id;
+      }
+    }
+
+    const resp = await fetch(`${CONFIG.zunoApiBase}/webhook/reset-demo`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-webhook-secret': CONFIG.webhookSecret,
+      },
+      body: JSON.stringify({ userId: resetUserId }),
+    });
+
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`);
+
+    // Broadcast reset to ZUNO tab
+    try {
+      const channel = new BroadcastChannel('zuno-demo-channel');
+      channel.postMessage({ type: 'reset' });
+      channel.close();
+    } catch (e) { /* ignore */ }
+
+    // Stop autoplay if running
+    if (autoPlayInterval) {
+      clearInterval(autoPlayInterval);
+      autoPlayInterval = null;
+    }
+    const btn = document.getElementById('autoPlayBtn');
+    if (btn) { btn.textContent = '💥 Demo lố 200k'; btn.disabled = false; }
+
+    // Clear session & local state
+    sessionStorage.removeItem('mb:zuno-user-id');
+    zunoUserId = null;
+    clearLocalState();
+
+    updateStats();
+    renderFeed();
+
+    // Update hero balance to 5tr
+    document.getElementById('heroBalance').textContent = (5_000_000).toLocaleString('vi-VN');
+
+    // Return to disconnected state
+    setConnectedState(false);
+    const btnConnect = document.getElementById('btnConnectZuno');
+    if (btnConnect) {
+      btnConnect.disabled = false;
+      btnConnect.classList.remove('loading');
+      btnConnect.innerHTML = '<span>⚡</span><span>Connect ZUNO Now</span>';
+    }
+
+    // Restore overlay text for next use
+    document.getElementById('connectingOverlay').querySelector('.connecting-text').textContent = 'Connecting to ZUNO...';
+    document.getElementById('connectingOverlay').querySelector('.connecting-sub').textContent = 'Loading your account details...';
+
+    showToast('success', '✅ Reset Successful!', 'Demo restored to initial state — 5,000,000 ₫ balance');
+
+  } catch (err) {
+    document.getElementById('connectingOverlay').querySelector('.connecting-text').textContent = 'Connecting to ZUNO...';
+    document.getElementById('connectingOverlay').querySelector('.connecting-sub').textContent = 'Loading your account details...';
+    showToast('error', '❌ Reset Failed', err.message || 'Unable to reset demo');
+  } finally {
+    document.getElementById('connectingOverlay').classList.remove('visible');
+  }
+}
+
+// ── Start ─────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
