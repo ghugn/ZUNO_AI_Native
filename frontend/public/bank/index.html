@@ -1234,9 +1234,10 @@ async function init() {
     }
   }
 
-  // Apply manual override from localStorage if it exists and is different from the Vercel domain itself
+  // Apply manual override from localStorage if it exists, is not a Vercel domain, and not null
   const savedApi = localStorage.getItem('mb:zuno-api-url');
-  if (savedApi && savedApi !== `${window.location.origin}/api` && savedApi !== 'null') {
+  const isVercelDomain = savedApi && (savedApi.includes('.vercel.app') || savedApi.startsWith(window.location.origin));
+  if (savedApi && !isVercelDomain && savedApi !== 'null') {
     CONFIG.zunoApiBase = savedApi;
     console.log('[Zuno] Using manual API URL override:', CONFIG.zunoApiBase);
   }
