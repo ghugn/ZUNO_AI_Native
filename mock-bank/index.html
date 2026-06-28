@@ -1217,9 +1217,8 @@ async function init() {
     txDateInput.value = localNowStr;
   }
 
-  // Try to load API URL dynamically from frontend config endpoint on load (if no manual override)
-  const hasCustomApiSaved = localStorage.getItem('mb:zuno-api-url');
-  if (!hasCustomApiSaved && typeof window !== 'undefined') {
+  // Try to load API URL dynamically from frontend config endpoint on load
+  if (typeof window !== 'undefined') {
     try {
       const origin = window.location.origin;
       const resp = await fetch(`${origin}/api/config`, { signal: AbortSignal.timeout(2000) });
@@ -1233,6 +1232,13 @@ async function init() {
     } catch (e) {
       console.warn('[Zuno] Could not fetch dynamic config from frontend:', e);
     }
+  }
+
+  // Apply manual override from localStorage if it exists and is different from the Vercel domain itself
+  const savedApi = localStorage.getItem('mb:zuno-api-url');
+  if (savedApi && savedApi !== `${window.location.origin}/api` && savedApi !== 'null') {
+    CONFIG.zunoApiBase = savedApi;
+    console.log('[Zuno] Using manual API URL override:', CONFIG.zunoApiBase);
   }
 
   renderFeed();
