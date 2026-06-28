@@ -1217,6 +1217,24 @@ async function init() {
     txDateInput.value = localNowStr;
   }
 
+  // Try to load API URL dynamically from frontend config endpoint on load (if no manual override)
+  const hasCustomApiSaved = localStorage.getItem('mb:zuno-api-url');
+  if (!hasCustomApiSaved && typeof window !== 'undefined') {
+    try {
+      const origin = window.location.origin;
+      const resp = await fetch(`${origin}/api/config`, { signal: AbortSignal.timeout(2000) });
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data.apiBaseUrl) {
+          CONFIG.zunoApiBase = data.apiBaseUrl;
+          console.log('[Zuno] Dynamically loaded backend API URL from frontend:', CONFIG.zunoApiBase);
+        }
+      }
+    } catch (e) {
+      console.warn('[Zuno] Could not fetch dynamic config from frontend:', e);
+    }
+  }
+
   renderFeed();
   updateStats();
   await checkZunoStatus();
