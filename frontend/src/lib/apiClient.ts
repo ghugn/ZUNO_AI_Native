@@ -124,10 +124,7 @@ async function request<T>(method: string, path: string, options: ApiJsonOptions 
           }
         }
         if (window.location.pathname !== '/login') {
-          if (!(window as any)._isRedirectingToLogin) {
-            (window as any)._isRedirectingToLogin = true;
-            window.location.assign('/login');
-          }
+          console.warn("Unauthorized API request received in apiClient. Skipping /login redirect.");
         }
       }
       throw new ApiError(getErrorMessage(payload, response.statusText), response.status, payload);
