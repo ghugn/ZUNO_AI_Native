@@ -127,10 +127,7 @@ export async function apiFetch<T = unknown>(
         }
       }
       if (window.location.pathname !== '/login') {
-        if (!(window as any)._isRedirectingToLogin) {
-          (window as any)._isRedirectingToLogin = true;
-          window.location.assign('/login');
-        }
+        console.warn("Unauthorized API request received. Skipping /login redirect to keep app accessible.");
       }
     }
     let errorMessage = `HTTP ${response.status}`;

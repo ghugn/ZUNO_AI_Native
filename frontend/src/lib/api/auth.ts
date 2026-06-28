@@ -177,22 +177,28 @@ export async function bootstrapAuth(): Promise<boolean> {
       } else {
         // In development/production: try to silently login or register the default user
         console.log('[Zuno] No token found, attempting silent bootstrap login...');
-        token = await loginDefault();
-        if (!token) {
-          console.log('[Zuno] Default user login failed, attempting registration...');
-          token = await registerDefault();
+        
+        let attempts = 0;
+        const maxAttempts = 10; // 10 attempts * 3s = 30s to wait for Render cold-start
+        
+        while (!token && attempts < maxAttempts) {
+          attempts++;
+          token = await loginDefault();
+          if (!token) {
+            console.log(`[Zuno] Default user login failed (attempt ${attempts}/${maxAttempts}), trying registration...`);
+            token = await registerDefault();
+          }
+          
+          if (!token && attempts < maxAttempts) {
+            console.log(`[Zuno] Registration failed. Backend might be starting up. Retrying in 3 seconds...`);
+            await new Promise((resolve) => setTimeout(resolve, 3000));
+          }
         }
 
         if (!token) {
-          // Fallback if backend is not running or auth fails: redirect to /login
+          console.warn('[Zuno] Silent login failed. Backend is offline.');
           if (typeof window !== 'undefined') {
             (window as any)._isBootstrapping = false;
-            if (window.location.pathname !== '/login') {
-              if (!(window as any)._isRedirectingToLogin) {
-                (window as any)._isRedirectingToLogin = true;
-                window.location.assign('/login');
-              }
-            }
           }
           return false;
         }
