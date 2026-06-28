@@ -92,6 +92,46 @@ export async function createTransaction(input: CreateTransactionInput): Promise<
     }
   }
 
+  // ── REFUND: Giảm spentAmount và hoàn trả DailyFoodSavings ────────
+  if (input.transactionType === 'refund') {
+    await optimisticFundUpdate(input.fundId, {
+      spentAmount: { decrement: amountBigInt },
+    });
+
+    const fund = await prisma.fund.findUnique({ where: { id: input.fundId } });
+    if (fund && fund.fundType === 'food') {
+      const dateOnly = new Date(Date.UTC(txDate.getFullYear(), txDate.getMonth(), txDate.getDate()));
+      const dailyFood = await prisma.dailyFoodSavings.findUnique({
+        where: { userId_date: { userId: input.userId, date: dateOnly } },
+      });
+
+      if (dailyFood) {
+        const updateField = input.mealType === 'sub' ? 'spentSub' : 'spentMain';
+        await prisma.dailyFoodSavings.update({
+          where: { id: dailyFood.id },
+          data: { [updateField]: { decrement: amountBigInt } },
+        });
+
+        const updated = await prisma.dailyFoodSavings.findUnique({ where: { id: dailyFood.id } });
+        if (updated) {
+          const effectiveBudget = updated.budgetMain + updated.budgetSub - updated.penaltyAppliedFromYesterday;
+          const totalSpent = updated.spentMain + updated.spentSub;
+          if (totalSpent <= effectiveBudget) {
+            await prisma.dailyFoodSavings.update({
+              where: { id: updated.id },
+              data: { savedAmount: effectiveBudget - totalSpent, dailyOverflow: BigInt(0) },
+            });
+          } else {
+            await prisma.dailyFoodSavings.update({
+              where: { id: updated.id },
+              data: { savedAmount: BigInt(0), dailyOverflow: totalSpent - effectiveBudget },
+            });
+          }
+        }
+      }
+    }
+  }
+
   // ── TRANSFER: Trừ quỹ nguồn, cộng quỹ đích ─────────────
   if (input.transactionType === 'transfer') {
     if (!input.targetFundId) {

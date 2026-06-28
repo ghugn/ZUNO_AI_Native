@@ -1,9 +1,10 @@
 'use client';
 
-import { getCalendarMonth, getHomeScreenData, getNotifications } from "@/lib/zunoApi";
-import type { CalendarDay, HomeScreenData } from "@/types/zuno";
-import { BarChart2, Bell, ChevronDown, Home, User, Wallet, Flame, Info, Utensils, Soup, Cookie, Gift, Target, PiggyBank, Compass, X, Bot } from "lucide-react";
+import { getAiMicroInsights, getCalendarMonth, getHomeScreenData, getNotifications, getSmartHubSuggestion } from "@/lib/zunoApi";
+import type { AiMicroInsight, CalendarDay, HomeScreenData, SmartHubSuggestion } from "@/types/zuno";
+import { Bell, ChevronDown, Home, Wallet, Flame, Info, Utensils, Soup, Cookie, Gift, Target, PiggyBank, Compass, Lightbulb, X } from "lucide-react";
 import Link from "next/link";
+import type { Ref } from "react";
 import { useEffect, useRef, useState } from "react";
 import { bootstrapAuth } from "@/lib/api/auth";
 import BottomNav from "@/components/layout/BottomNav";
@@ -85,6 +86,114 @@ function openNativeDatePicker(input: HTMLInputElement | null) {
   }
 
   input.click();
+}
+
+function calendarStatusFromInsight(insight: AiMicroInsight): CalendarDay["status"] {
+  return insight.overflowLevel === "level_2" || insight.overflowLevel === "level_3" ? "overspendLevel2" : "overspendLevel1";
+}
+
+function isInsightStatus(status: CalendarDay["status"] | undefined) {
+  return status === "overspendLevel1" || status === "overspendLevel2" || status === "overspendLevel3";
+}
+
+function formatInsightAmount(amount: number) {
+  return amount.toLocaleString("vi-VN").replace(/\./g, ".");
+}
+
+function getWeekdayName(dateValue: string) {
+  return parseDateValue(dateValue).toLocaleDateString("en-US", { weekday: "long" });
+}
+
+function ZunoRobotIcon() {
+  return (
+    <svg aria-hidden="true" className="h-[58px] w-[62px] shrink-0" fill="none" viewBox="0 0 70 68" xmlns="http://www.w3.org/2000/svg">
+      <path d="M35 7V18" stroke="#112945" strokeLinecap="round" strokeWidth="5.4" />
+      <circle cx="35" cy="6.8" fill="#112945" r="5.2" />
+      <path d="M17.5 31C20.5 19.9 27 15 35 15C43 15 49.5 19.9 52.5 31C59 32.5 63 38.4 63 47.2C60.6 57.1 49.9 63.7 35 63.7C20.1 63.7 9.4 57.1 7 47.2C7 38.4 11 32.5 17.5 31Z" fill="#112945" />
+      <path d="M15.8 45.4C15.8 34.2 24.4 27.3 35 27.3C45.6 27.3 54.2 34.2 54.2 45.4C54.2 52.7 46.6 56.7 35 56.7C23.4 56.7 15.8 52.7 15.8 45.4Z" fill="#F7F8FA" />
+      <rect fill="#112945" height="14.4" rx="7.2" width="9.2" x="21.6" y="39.1" />
+      <rect fill="#112945" height="14.4" rx="7.2" width="9.2" x="39.2" y="39.1" />
+      <path d="M20.3 27.5H49.7C52.8 27.5 55.4 30 55.4 33.1V36H14.6V33.1C14.6 30 17.2 27.5 20.3 27.5Z" fill="#112945" />
+    </svg>
+  );
+}
+
+function AiMicroInsightCard({ insight, onDismiss }: { insight: AiMicroInsight; onDismiss: () => void }) {
+  const insightMessage = `You overspent ${formatInsightAmount(insight.overflowAmount)} VNĐ on ${getWeekdayName(insight.date)} for Food and Drinks.`;
+
+  return (
+    <div className="absolute left-px z-10 h-[116px] w-[363px] rounded-[28px] bg-[#f7f8fa] px-[18px] pb-[18px] pt-[18px] shadow-[0_10px_24px_rgba(17,41,69,0.28)]">
+      <div className="flex h-full items-center gap-[17px]">
+        <ZunoRobotIcon />
+        <div className="min-w-0 flex-1 self-start pt-[1px]">
+          <div className="flex items-start justify-between gap-2">
+            <p className="font-['SF_Compact_Rounded',sans-serif] text-[14px] font-extrabold leading-[17px] tracking-[0px] text-[#f39a18]">
+              ZUNO AI
+            </p>
+            <button aria-label="Hide AI micro insight" className="-mr-[3px] -mt-[3px] flex size-[25px] shrink-0 items-center justify-center rounded-full text-[#707780] hover:bg-black/5" onClick={onDismiss} type="button">
+              <X className="size-[21px]" strokeWidth={2.2} />
+            </button>
+          </div>
+          <p className="mt-[3px] line-clamp-2 font-['SF_Compact_Rounded',sans-serif] text-[11.5px] font-normal leading-[14px] tracking-[0px] text-black">
+            {insightMessage}
+          </p>
+          <Link href={insight.actionHref} className="mt-[5px] inline-flex font-['SF_Compact_Rounded',sans-serif] text-[11.5px] font-extrabold leading-[14px] tracking-[0px] text-[#f39a18]">
+            Details &gt;
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SmartHubIcon() {
+  return (
+    <svg aria-hidden="true" className="h-[58px] w-[58px] shrink-0" fill="none" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
+      <path d="M24.2 13.8C16 16.4 10 24.1 10 33.2C10 44.5 19.1 53.7 30.4 53.7C41.7 53.7 50.8 44.5 50.8 33.2C50.8 30.6 50.3 28.1 49.4 25.8" stroke="#112945" strokeLinecap="round" strokeWidth="6.2" />
+      <path d="M44.8 48L62 65.2" stroke="#112945" strokeLinecap="round" strokeWidth="7.2" />
+      <path d="M24.1 40L30.2 25.7L36.3 40M26.4 34.4H34" stroke="#112945" strokeLinecap="round" strokeLinejoin="round" strokeWidth="4.2" />
+      <path d="M42.3 26.3V40" stroke="#112945" strokeLinecap="round" strokeWidth="4.2" />
+      <path d="M51.8 6.2L55.8 16.1L65.7 20.1L55.8 24.1L51.8 34L47.8 24.1L37.9 20.1L47.8 16.1L51.8 6.2Z" fill="#112945" />
+      <path d="M33.6 2.5L36 8.3L41.8 10.7L36 13.1L33.6 18.9L31.2 13.1L25.4 10.7L31.2 8.3L33.6 2.5Z" fill="#112945" />
+      <path d="M64.2 8.9L65.9 13L70 14.7L65.9 16.4L64.2 20.5L62.5 16.4L58.4 14.7L62.5 13L64.2 8.9Z" fill="#112945" />
+    </svg>
+  );
+}
+
+function SmartHubCard({ suggestion, onDismiss, cardRef }: { suggestion: SmartHubSuggestion; onDismiss: () => void; cardRef?: Ref<HTMLDivElement> }) {
+  return (
+    <div ref={cardRef} className="absolute left-px top-[513px] z-10 min-h-[164px] w-[363px] rounded-[22px] bg-[#f7f8fa] px-[14px] pb-[16px] pt-[16px] shadow-[0_8px_18px_rgba(0,0,0,0.20)]">
+      <div className="flex h-full gap-[12px]">
+        <div className="pt-[2px]">
+          <SmartHubIcon />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between">
+            <p className="font-['SF_Compact_Rounded',sans-serif] text-[14px] font-extrabold leading-[17px] tracking-[0px] text-[#f39a18]">
+              {suggestion.title}
+            </p>
+            <button aria-label="Hide ZUNO Smart Hub" className="-mr-[5px] -mt-[5px] flex size-[25px] items-center justify-center rounded-full text-[#707780] hover:bg-black/5" onClick={onDismiss} type="button">
+              <X className="size-[18px]" strokeWidth={2.2} />
+            </button>
+          </div>
+          <div className="mt-[9px] space-y-[7px]">
+            {suggestion.suggestions.slice(0, 2).map((item, index) => (
+              <div className="grid grid-cols-[18px_1fr] gap-[8px]" key={`${suggestion.id}-${index}`}>
+                <Lightbulb className="mt-[1px] size-[16px] text-[#f39a18]" strokeWidth={2} />
+                <p className="font-['SF_Compact_Rounded',sans-serif] text-[11.5px] font-normal leading-[14px] tracking-[0px] text-black">
+                  {item}
+                </p>
+              </div>
+            ))}
+          </div>
+          <div className="ml-[26px] mt-[12px] flex gap-[10px] font-['SF_Compact_Rounded',sans-serif] text-[11px] font-extrabold leading-[14px]">
+            <button className="h-[24px] min-w-[58px] rounded-full bg-[#dff5e6] px-[13px] text-[#2f9b52] shadow-[inset_0_0_0_1px_rgba(47,155,82,0.12)] active:scale-95" type="button">{suggestion.primaryActionLabel}</button>
+            <button className="h-[24px] min-w-[58px] rounded-full bg-[#fde8e8] px-[13px] text-[#cf2d2d] shadow-[inset_0_0_0_1px_rgba(207,45,45,0.12)] active:scale-95" type="button">{suggestion.secondaryActionLabel}</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 type HomeCalendarProps = {
@@ -207,7 +316,12 @@ function Component5({ className, onStreakChange }: Component5Props) {
   });
   const [homeData, setHomeData] = useState<HomeScreenData | null>(null);
   const [calendarDays, setCalendarDays] = useState<CalendarDay[]>([]);
-  const [showConnectZunoPopup, setShowConnectZunoPopup] = useState(false);
+  const [aiInsights, setAiInsights] = useState<AiMicroInsight[]>([]);
+  const [smartHubSuggestion, setSmartHubSuggestion] = useState<SmartHubSuggestion | null>(null);
+  const [dismissedInsightDates, setDismissedInsightDates] = useState<Set<string>>(() => new Set());
+  const [dismissedSmartHubDates, setDismissedSmartHubDates] = useState<Set<string>>(() => new Set());
+  const smartHubCardRef = useRef<HTMLDivElement | null>(null);
+  const [smartHubHeight, setSmartHubHeight] = useState(0);
   const calendarOffset = isCalendarExpanded ? 215 : 0;
   const month = `${selectedDate.slice(0, 7)}-01`;
 
@@ -219,14 +333,19 @@ function Component5({ className, onStreakChange }: Component5Props) {
         const ok = await bootstrapAuth();
         if (!ok || !isMounted) return;
 
-        const [homeSummary, calendarMonth] = await Promise.all([
+        const selectedWeekStart = formatDateValue(getWeekStart(parseDateValue(selectedDate)));
+        const [homeSummary, calendarMonth, microInsights, smartHub] = await Promise.all([
           getHomeScreenData(selectedDate, month),
           getCalendarMonth(month),
+          getAiMicroInsights(selectedWeekStart),
+          getSmartHubSuggestion(selectedDate),
         ]);
 
         if (isMounted) {
           setHomeData(homeSummary);
           setCalendarDays(calendarMonth.days);
+          setAiInsights(microInsights);
+          setSmartHubSuggestion(smartHub);
           if (onStreakChange) {
             onStreakChange(homeSummary.rewardSummary?.streak ?? 0);
           }
@@ -246,6 +365,8 @@ function Component5({ className, onStreakChange }: Component5Props) {
         if (isMounted) {
           setHomeData(null);
           setCalendarDays([]);
+          setAiInsights([]);
+          setSmartHubSuggestion(null);
         }
       }
     }
@@ -265,6 +386,30 @@ function Component5({ className, onStreakChange }: Component5Props) {
       isMounted = false;
     };
   }, [selectedDate, month, onStreakChange]);
+
+  useEffect(() => {
+    const isVisible = Boolean(smartHubSuggestion && !dismissedSmartHubDates.has(selectedDate));
+    const node = smartHubCardRef.current;
+
+    if (!isVisible || !node) {
+      setSmartHubHeight(0);
+      return;
+    }
+
+    const updateHeight = () => {
+      setSmartHubHeight(Math.ceil(node.getBoundingClientRect().height));
+    };
+
+    updateHeight();
+
+    if (typeof ResizeObserver === "undefined") {
+      return;
+    }
+
+    const observer = new ResizeObserver(updateHeight);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [smartHubSuggestion, dismissedSmartHubDates, selectedDate]);
 
   const recentsForView = (homeData?.recentTransactions ?? []).slice(0, 6).map((transaction) => {
     const isIncome = transaction.type === "income";
@@ -290,7 +435,7 @@ function Component5({ className, onStreakChange }: Component5Props) {
     }
 
     return {
-      title: isIncome ? "Income" : ((transaction as any).merchant || transaction.category || "Transaction"),
+      title: isIncome ? "Income" : (transaction.description || transaction.category || "Transaction"),
       time: timeText,
       amount: amountText,
       iconType,
@@ -313,8 +458,27 @@ function Component5({ className, onStreakChange }: Component5Props) {
   const weeklyRewardCurrent = rewardSummary?.weeklySavings ?? 0;
   const weeklyRewardGoal = rewardSummary?.weeklyMilestone ? Number.parseInt(rewardSummary.weeklyMilestone.replace(/\D/g, ""), 10) * 1000 : 100000;
   const weeklyRewardProgress = Math.min(165.341, weeklyRewardGoal > 0 ? (weeklyRewardCurrent / weeklyRewardGoal) * 165.341 : 0);
+  const aiInsightMap = new Map(aiInsights.map((insight) => [insight.date, insight]));
   const calendarDayMap = new Map(calendarDays.map((day) => [day.date, day]));
+  aiInsightMap.forEach((insight, date) => {
+    const existing = calendarDayMap.get(date);
+    if (!existing || existing.status === "noData" || existing.status === "safe") {
+      calendarDayMap.set(date, {
+        date,
+        budgetAmount: existing?.budgetAmount ?? 109000,
+        spentAmount: existing?.spentAmount ?? 109000 + insight.overflowAmount,
+        savedAmount: existing?.savedAmount ?? 0,
+        overflowAmount: existing?.overflowAmount ?? insight.overflowAmount,
+        status: calendarStatusFromInsight(insight),
+      });
+    }
+  });
   const selectedCalendarDay = calendarDayMap.get(selectedDate);
+  const selectedInsight = isInsightStatus(selectedCalendarDay?.status) ? aiInsightMap.get(selectedDate) ?? null : null;
+  const shouldShowInsight = Boolean(selectedInsight && !dismissedInsightDates.has(selectedDate));
+  const insightOffset = shouldShowInsight ? 134 : 0;
+  const shouldShowSmartHub = Boolean(smartHubSuggestion && !dismissedSmartHubDates.has(selectedDate));
+  const smartHubOffset = shouldShowSmartHub ? Math.max(smartHubHeight, 164) + 15 : 0;
   const dailyBudget = todayFood ? Math.max(todayFood.budgetAmount, 1) : 1;
   const dailySpent = todayFood ? todayFood.spentMain + todayFood.spentSub : 0;
   const dailySpentPercent = todayFood ? Math.min(100, Math.max(0, (dailySpent / dailyBudget) * 100)) : 0;
@@ -330,7 +494,7 @@ function Component5({ className, onStreakChange }: Component5Props) {
     <div className={className || "h-[669px] relative w-[380px]"} data-node-id="545:1586">
       <div
         className="absolute inset-0 transition-transform duration-200 ease-out"
-        style={{ transform: `translateY(${calendarOffset}px)` }}
+        style={{ transform: `translateY(${calendarOffset + insightOffset}px)` }}
       >
       <p className="absolute left-[18px] top-[119px] w-[245px] text-left font-['SF Compact Rounded',sans-serif] text-[22px] font-bold leading-[26px] not-italic text-black" data-node-id="545:1016">
         {todayWrapLabel}
@@ -457,6 +621,23 @@ function Component5({ className, onStreakChange }: Component5Props) {
           </p>
         </div>
       </div>
+      {shouldShowSmartHub && smartHubSuggestion ? (
+        <SmartHubCard
+          cardRef={smartHubCardRef}
+          suggestion={smartHubSuggestion}
+          onDismiss={() => {
+            setDismissedSmartHubDates((current) => {
+              const next = new Set(current);
+              next.add(selectedDate);
+              return next;
+            });
+          }}
+        />
+      ) : null}
+      <div
+        className="absolute inset-0 transition-transform duration-200 ease-out"
+        style={{ transform: `translateY(${smartHubOffset}px)` }}
+      >
       <Link href="/add-transaction" className="-translate-x-1/2 absolute font-['SF_Compact_Rounded',sans-serif] font-normal leading-[normal] left-[332px] not-italic text-[12px] text-[#174f84] text-center top-[828px] whitespace-nowrap hover:underline" data-node-id="545:1069">
         See all
       </Link>
@@ -512,11 +693,7 @@ function Component5({ className, onStreakChange }: Component5Props) {
               }
 
               return (
-                <div 
-                  key={`${transaction.title}-${transaction.time}-${transaction.amount}-${index}`} 
-                  className="grid grid-cols-[33px_1fr_auto] gap-x-[23px] py-[7px] cursor-pointer hover:bg-black/5 rounded-xl px-2 -mx-2 transition-colors"
-                  onClick={() => setShowConnectZunoPopup(true)}
-                >
+                <div key={`${transaction.title}-${transaction.time}-${transaction.amount}-${index}`} className="grid grid-cols-[33px_1fr_auto] gap-x-[23px] py-[7px]">
                   <div className={`row-span-2 flex size-[33px] items-center justify-center rounded-full ${iconBg}`}>
                     <IconComponent className="size-[18px]" />
                   </div>
@@ -632,6 +809,21 @@ function Component5({ className, onStreakChange }: Component5Props) {
         <Info className="size-[14px]" />
       </a>
       </div>
+      </div>
+      {selectedInsight && !dismissedInsightDates.has(selectedDate) ? (
+        <div className="absolute transition-[top] duration-200 ease-out" style={{ top: isCalendarExpanded ? 326 : 112 }}>
+          <AiMicroInsightCard
+            insight={selectedInsight}
+            onDismiss={() => {
+              setDismissedInsightDates((current) => {
+                const next = new Set(current);
+                next.add(selectedDate);
+                return next;
+              });
+            }}
+          />
+        </div>
+      ) : null}
       <HomeCalendar
         isMonthOpen={isCalendarExpanded}
         onMonthOpenChange={setIsCalendarExpanded}
@@ -639,33 +831,6 @@ function Component5({ className, onStreakChange }: Component5Props) {
         onSelectDate={setSelectedDate}
         calendarDays={calendarDayMap}
       />
-
-      {showConnectZunoPopup && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#112945]/60 backdrop-blur-sm px-4">
-          <div className="bg-white rounded-[20px] p-6 w-full max-w-[340px] shadow-2xl relative">
-            <button 
-              onClick={() => setShowConnectZunoPopup(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              <X className="size-6" strokeWidth={2} />
-            </button>
-            
-            <div className="flex size-14 items-center justify-center rounded-[14px] bg-[#2E5B8E] mb-5 shadow-inner">
-              <Bot className="size-8 text-white" />
-            </div>
-
-            <h3 className="text-[18px] font-bold font-['Inter',sans-serif] text-[#112945] mb-3 leading-tight text-left">
-              Are you overspending?
-            </h3>
-            <p className="text-[13px] text-[#546982] mb-4 font-['Inter',sans-serif] leading-[1.6] text-left">
-              You are making transactions but your account is not linked to <span className="font-bold text-[#112945]">ZUNO Wallet</span>.
-            </p>
-            <p className="text-[13px] text-[#546982] font-['Inter',sans-serif] leading-[1.6] text-left">
-              Connect to ZUNO now to let AI help you manage 5 budget funds and automatically warn you when spending exceeds the limit!
-            </p>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -686,7 +851,7 @@ export default function IPhone1415Pro1() {
         const readIds: string[] = JSON.parse(localStorage.getItem('zuno:read-notifications') || '[]');
         const unread = notifs.some(n => !n.isRead && !readIds.includes(n.id));
         setHasUnread(unread);
-      } catch (err) {
+      } catch {
         // silently ignore error
       }
     }
@@ -696,7 +861,7 @@ export default function IPhone1415Pro1() {
   }, []);
 
   return (
-    <div className="relative mx-auto min-h-[1540px] w-full max-w-[393px] overflow-x-hidden bg-[#f7f8fa] pb-[88px]" data-node-id="1:2121" data-name="iPhone 14 & 15 Pro - 1">
+    <div className="relative mx-auto min-h-[1700px] w-full max-w-[393px] overflow-x-hidden bg-[#f7f8fa] pb-[88px]" data-node-id="1:2121" data-name="iPhone 14 & 15 Pro - 1">
       <div className="absolute bg-gradient-to-b from-[#112945] h-[457px] left-0 to-[#f7f8fa] top-[-3px] via-[#4d78a8] via-[37.5%] w-[393px]" data-node-id="1:2122" />
       <div className="pointer-events-none absolute left-[88px] top-[48px] size-[3px] rounded-full bg-white/45 z-0" />
       <div className="pointer-events-none absolute left-[172px] top-[28px] size-[2px] rounded-full bg-white/45 z-0" />
@@ -731,7 +896,7 @@ export default function IPhone1415Pro1() {
         <Flame className="size-6 text-orange-400 fill-orange-400" />
       </div>
       <BottomNav />
-      <Component5 className="absolute h-[1310px] left-[13px] overflow-visible top-[121px] w-[380px]" onStreakChange={setStreak} />
+      <Component5 className="absolute h-[1470px] left-[13px] overflow-visible top-[121px] w-[380px]" onStreakChange={setStreak} />
     </div>
   );
 }

@@ -2,7 +2,7 @@ export type MoneyLike = string | number;
 
 export type ResidenceType = "dorm" | "rent";
 export type FundType = "living" | "food" | "growth" | "experience" | "future";
-export type TransactionType = "expense" | "income" | "transfer";
+export type TransactionType = "expense" | "income" | "transfer" | "refund";
 export type MealType = "main" | "sub";
 export type OverflowLevel = "level_1" | "level_2" | "level_3";
 export type OverflowStatus = "pending" | "partial" | "repaid" | "resolved";
@@ -240,6 +240,28 @@ export type CalendarDay = {
   savedAmount: number;
   overflowAmount: number;
   status: "safe" | "overspendLevel1" | "overspendLevel2" | "overspendLevel3" | "noData";
+};
+
+export type AiMicroInsight = {
+  id: string;
+  date: string;
+  severity: "warning" | "danger";
+  overflowLevel: OverflowLevel;
+  overflowAmount: number;
+  reason: string;
+  message: string;
+  actionLabel: string;
+  actionHref: string;
+};
+
+export type SmartHubSuggestion = {
+  id: string;
+  date: string;
+  scenario: "subscription_leak" | "weekend_buffer";
+  title: string;
+  suggestions: string[];
+  primaryActionLabel: string;
+  secondaryActionLabel: string;
 };
 
 export type RewardSummary = {

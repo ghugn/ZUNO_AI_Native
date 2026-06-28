@@ -10,6 +10,8 @@ import dailyFoodRoutes from './routes/dailyFood.routes.js';
 import rewardRoutes from './routes/reward.routes.js';
 import overflowRoutes from './routes/overflow.routes.js';
 import aiParseLogRoutes from './routes/aiParseLog.routes.js';
+import aiMicroInsightRoutes from './routes/aiMicroInsight.routes.js';
+import smartHubRoutes from './routes/smartHub.routes.js';
 import cronRoutes from './routes/cron.routes.js';
 import receiptRoutes from './routes/receiptScan.routes.js';
 import webhookRoutes from './routes/webhook.routes.js';
@@ -63,6 +65,8 @@ app.use('/api/daily-food', dailyFoodRoutes);
 app.use('/api/rewards', rewardRoutes);
 app.use('/api/overflows', overflowRoutes);
 app.use('/api/ai-logs', aiParseLogRoutes);
+app.use('/api/ai-micro-insights', aiMicroInsightRoutes);
+app.use('/api/smart-hub', smartHubRoutes);
 app.use('/api/cron', cronRoutes);
 app.use('/api/receipt', receiptRoutes);
 app.use('/api/webhook', webhookRoutes);  // Mock Core Banking → ZUNO

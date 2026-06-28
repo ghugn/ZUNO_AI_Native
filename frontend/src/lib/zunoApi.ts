@@ -11,10 +11,12 @@ import {
   getDateOnly,
   getMonthStart,
   getWeekStart,
+  parseDate,
   summarizeHomeData,
   toNumber,
 } from "@/lib/adapters";
 import type {
+  AiMicroInsight,
   BudgetScreenData,
   CalendarMonthData,
   FundType,
@@ -35,6 +37,7 @@ import type {
   RawPersonalWallet,
   PersonalWalletViewModel,
   RawZunoDatabase,
+  SmartHubSuggestion,
   TransactionFormState,
   TransactionItem,
   TransactionSetupData,
@@ -42,6 +45,120 @@ import type {
 } from "@/types/zuno";
 
 const USE_MOCK = process.env.NEXT_PUBLIC_API_MODE === "memory-mock";
+
+function addDaysToDateOnly(value: string, days: number) {
+  const date = new Date(`${value}T00:00:00.000Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+function getCurrentWeekAiMicroInsights(): AiMicroInsight[] {
+  const weekStart = getWeekStart(new Date());
+  return [
+    {
+      id: `ai_micro_${weekStart}_0`,
+      date: addDaysToDateOnly(weekStart, 0),
+      severity: "warning",
+      overflowLevel: "level_1",
+      overflowAmount: 36000,
+      reason: "ăn sáng và cà phê",
+      message: "Bạn tiêu lố 36k do ăn sáng và cà phê. Giảm nhẹ bữa phụ hôm sau là đủ quay về nhịp an toàn.",
+      actionLabel: "Details",
+      actionHref: "/notifications",
+    },
+    {
+      id: `ai_micro_${weekStart}_1`,
+      date: addDaysToDateOnly(weekStart, 1),
+      severity: "warning",
+      overflowLevel: "level_1",
+      overflowAmount: 42000,
+      reason: "ăn ngoài và đồ uống",
+      message: "Bạn tiêu lố 42k do ăn ngoài và đồ uống. Giảm 14k/ngày trong 3 ngày tới là đủ kéo Food về vùng an toàn.",
+      actionLabel: "Xem đề xuất điều chỉnh",
+      actionHref: "/notifications",
+    },
+    {
+      id: `ai_micro_${weekStart}_2`,
+      date: addDaysToDateOnly(weekStart, 2),
+      severity: "danger",
+      overflowLevel: "level_2",
+      overflowAmount: 120000,
+      reason: "ăn ngoài",
+      message: "Bạn tiêu lố 120k do ăn ngoài. ZUNO gợi ý giảm bữa chính ngày mai để giữ streak tuần này.",
+      actionLabel: "Details",
+      actionHref: "/notifications",
+    },
+    {
+      id: `ai_micro_${weekStart}_3`,
+      date: addDaysToDateOnly(weekStart, 3),
+      severity: "warning",
+      overflowLevel: "level_1",
+      overflowAmount: 68000,
+      reason: "đặt đồ ăn khuya",
+      message: "Bạn lố 68k vì đặt đồ ăn khuya. ZUNO gợi ý chuyển bữa phụ ngày mai về 20k để không chạm quỹ dự phòng.",
+      actionLabel: "Xem chi tiết nguyên nhân",
+      actionHref: "/notifications",
+    },
+    {
+      id: `ai_micro_${weekStart}_4`,
+      date: addDaysToDateOnly(weekStart, 4),
+      severity: "warning",
+      overflowLevel: "level_1",
+      overflowAmount: 54000,
+      reason: "Food and Drinks",
+      message: "Bạn tiêu lố 54k cho Food and Drinks. Dời một bữa phụ sang ngày mai sẽ giúp cân lại ngân sách.",
+      actionLabel: "Details",
+      actionHref: "/notifications",
+    },
+    {
+      id: `ai_micro_${weekStart}_5`,
+      date: addDaysToDateOnly(weekStart, 5),
+      severity: "danger",
+      overflowLevel: "level_2",
+      overflowAmount: 120000,
+      reason: "ăn ngoài cuối tuần",
+      message: "Bạn tiêu lố 120k vào cuối tuần do ăn ngoài. Nếu giữ bữa chính dưới 55k hôm sau, tuần này vẫn có thể giữ streak.",
+      actionLabel: "Mở phân tích tối ưu",
+      actionHref: "/notifications",
+    },
+  ];
+}
+
+function getSmartHubMockSuggestion(date: string): SmartHubSuggestion {
+  const dateValue = new Date(`${date}T00:00:00.000Z`);
+  const isWeekendBuffer = dateValue.getUTCDay() === 5 || dateValue.getUTCDay() === 6 || dateValue.getUTCDay() === 0;
+  const renewalDate = addDaysToDateOnly(date, 7);
+  const renewalDisplay = parseDate(renewalDate).toLocaleDateString("en-US", { month: "long", day: "numeric" });
+  const monthEndDisplay = parseDate(addDaysToDateOnly(date, 1)).toLocaleDateString("en-US", { month: "long", day: "numeric" });
+
+  if (isWeekendBuffer) {
+    return {
+      id: `smart_hub_weekend_${date}`,
+      date,
+      scenario: "weekend_buffer",
+      title: "ZUNO SMART HUB",
+      suggestions: [
+        `AI estimates that your Food and Drinks budget will exhaust on ${monthEndDisplay}.`,
+        "You usually overspend on Saturday snacks. Set aside a 120.000 VNĐ weekend buffer from Experience?",
+      ],
+      primaryActionLabel: "Yes",
+      secondaryActionLabel: "No",
+    };
+  }
+
+  return {
+    id: `smart_hub_subscription_${date}`,
+    date,
+    scenario: "subscription_leak",
+    title: "ZUNO SMART HUB",
+      suggestions: [
+        `AI found a recurring subscription renewal in 7 days on ${renewalDisplay}.`,
+        "Spotify Student may renew for 59.000 VNĐ. Do you want to renew this subscription?",
+    ],
+    primaryActionLabel: "Yes",
+    secondaryActionLabel: "No",
+  };
+}
 
 const MOCK_DB: RawZunoDatabase = {
   profile: {
@@ -596,6 +713,9 @@ function updateFundForMockTransaction(transaction: RawTransaction) {
   if (transaction.transactionType === "expense" || transaction.transactionType === "transfer") {
     fund.spentAmount = toMoneyString(toNumber(fund.spentAmount) + amount);
   }
+  if (transaction.transactionType === "refund") {
+    fund.spentAmount = toMoneyString(Math.max(0, toNumber(fund.spentAmount) - amount));
+  }
   if (transaction.transactionType === "income") {
     fund.allocatedAmount = toMoneyString(toNumber(fund.allocatedAmount) + amount);
   }
@@ -614,7 +734,7 @@ function updateFundForMockTransaction(transaction: RawTransaction) {
 
 function updateDailyFoodForMockTransaction(transaction: RawTransaction) {
   const fund = getFundById(transaction.fundId);
-  if (!fund || fund.fundType !== "food" || transaction.transactionType !== "expense") {
+  if (!fund || fund.fundType !== "food" || (transaction.transactionType !== "expense" && transaction.transactionType !== "refund")) {
     return null;
   }
 
@@ -626,7 +746,11 @@ function updateDailyFoodForMockTransaction(transaction: RawTransaction) {
 
   const amount = toNumber(transaction.amount);
   const spentKey = transaction.mealType === "sub" ? "spentSub" : "spentMain";
-  record[spentKey] = toMoneyString(toNumber(record[spentKey]) + amount);
+  if (transaction.transactionType === "expense") {
+    record[spentKey] = toMoneyString(toNumber(record[spentKey]) + amount);
+  } else if (transaction.transactionType === "refund") {
+    record[spentKey] = toMoneyString(Math.max(0, toNumber(record[spentKey]) - amount));
+  }
 
   const effectiveBudget = toNumber(record.budgetMain) + toNumber(record.budgetSub) - toNumber(record.penaltyAppliedFromYesterday);
   const totalSpent = toNumber(record.spentMain) + toNumber(record.spentSub);
@@ -638,6 +762,7 @@ function updateDailyFoodForMockTransaction(transaction: RawTransaction) {
   return { record, overflow };
 }
 
+// @ts-ignore
 function createOverflowForMockTransaction(transaction: RawTransaction, dailyFoodResult: ReturnType<typeof updateDailyFoodForMockTransaction>) {
   if (!dailyFoodResult || dailyFoodResult.overflow <= 0) {
     return null;
@@ -912,6 +1037,24 @@ export async function getCalendarMonth(month: string): Promise<CalendarMonthData
     month,
     days: adaptCalendarMonth(dailyFood, overflows),
   };
+}
+
+export async function getAiMicroInsights(weekStart: string): Promise<AiMicroInsight[]> {
+  return USE_MOCK
+    ? getCurrentWeekAiMicroInsights().filter((insight) => getWeekStart(insight.date) === weekStart)
+    : apiClient.get<AiMicroInsight[]>("/api/ai-micro-insights", { query: { weekStart } });
+}
+
+export async function getAiMicroInsightByDate(date: string): Promise<AiMicroInsight | null> {
+  return USE_MOCK
+    ? getCurrentWeekAiMicroInsights().find((insight) => insight.date === date) ?? null
+    : apiClient.get<AiMicroInsight | null>("/api/ai-micro-insights/by-date", { query: { date } });
+}
+
+export async function getSmartHubSuggestion(date: string): Promise<SmartHubSuggestion> {
+  return USE_MOCK
+    ? getSmartHubMockSuggestion(date)
+    : apiClient.get<SmartHubSuggestion>("/api/smart-hub", { query: { date } });
 }
 
 export async function getTransactionSetupData(month: string): Promise<TransactionSetupData> {

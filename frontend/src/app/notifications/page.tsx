@@ -2,14 +2,16 @@
 
 import { getNotifications } from "@/lib/zunoApi";
 import type { NotificationKind, NotificationViewModel } from "@/types/zuno";
-import { AlertTriangle, ChevronRight, Gift, Settings, Utensils, X } from "lucide-react";
+import { AlertTriangle, Bot, ChevronRight, CreditCard, Gift, MapPin, Settings, ShieldAlert, Utensils, X } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { bootstrapAuth } from "@/lib/api/auth";
 import { apiClient } from "@/lib/apiClient";
 
-const tabs = ["All", "Alerts", "Budget", "Rewards", "System"];
+type NotificationTab = "System" | "AI assistant";
+
+const tabs: NotificationTab[] = ["System", "AI assistant"];
 
 function getCurrentMonthString() {
   const now = new Date();
@@ -25,8 +27,6 @@ type NotificationItem = {
   icon: ReactNode;
   iconBg: string;
   kind: string;
-  tag?: string;
-  tagClassName?: string;
   time: string;
   title: string;
   tone?: "alert";
@@ -36,6 +36,74 @@ type NotificationItem = {
   transactionAmount?: number;
   isRead?: boolean;
 };
+
+const AI_ASSISTANT_NOTIFICATIONS: NotificationItem[] = [
+  {
+    id: "ai-location-nudge",
+    body: (
+      <p>
+        You just entered Vincom MegaMall, one of your high-spend spots. Your Experience fund has only <strong>35.000đ</strong> left today.
+      </p>
+    ),
+    dateLabel: formatDateLabel(new Date().toISOString()),
+    dotColor: "bg-[#e11d48]",
+    icon: <MapPin className="size-[23px] text-[#e11d48]" strokeWidth={2.25} />,
+    iconBg: "bg-[#fff1f1]",
+    kind: "AI assistant",
+    time: "5:20 PM",
+    title: "Location temptation alert",
+    action: "View safe spending tips",
+  },
+  {
+    id: "ai-subscription-alert",
+    body: (
+      <p>
+        Netflix Premium <strong>260.000đ</strong> will renew in 7 days. Do you want to cancel or keep this subscription?
+      </p>
+    ),
+    dateLabel: formatDateLabel(new Date().toISOString()),
+    dotColor: "bg-[#f39a18]",
+    icon: <CreditCard className="size-[23px] text-[#f39a18]" strokeWidth={2.25} />,
+    iconBg: "bg-[#fff7ed]",
+    kind: "AI assistant",
+    time: "2:10 PM",
+    title: "Subscription renewal alert",
+    action: "Manage subscription",
+  },
+  {
+    id: "ai-budget-rescue",
+    body: (
+      <p>
+        ZUNO noticed weekend Food overspending for 3 weeks. A <strong>120.000đ</strong> Weekend Buffer from Experience may reduce overflow risk this week.
+      </p>
+    ),
+    dateLabel: formatDateLabel(new Date().toISOString()),
+    dotColor: "bg-[#2563eb]",
+    icon: <Bot className="size-[24px] text-[#174f84]" strokeWidth={2.2} />,
+    iconBg: "bg-[#eef6ff]",
+    kind: "AI assistant",
+    time: "11:45 AM",
+    title: "Smart budget rescue",
+    action: "Review plan",
+  },
+  {
+    id: "ai-risk-intercept",
+    body: (
+      <p>
+        A late-night transfer pattern looks unusual compared with your normal behavior. ZUNO can add an extra confirmation step before high-risk transfers.
+      </p>
+    ),
+    dateLabel: formatDateLabel(new Date(Date.now() - 86400000).toISOString()),
+    dotColor: "bg-[#e11d48]",
+    icon: <ShieldAlert className="size-[24px] text-[#e11d48]" strokeWidth={2.2} />,
+    iconBg: "bg-[#fff1f1]",
+    kind: "AI assistant",
+    time: "9:30 PM",
+    title: "AI risk protection",
+    action: "Check protection",
+    isRead: true,
+  },
+];
 
 function formatDateLabel(value: string) {
   const dateStr = value.includes("T") ? value.split("T")[0] : value;
@@ -104,9 +172,7 @@ function toNotificationItem(notification: NotificationViewModel): NotificationIt
     dotColor: style.dotColor,
     icon: style.icon,
     iconBg: style.iconBg,
-    kind: notification.kind,
-    tag: notification.tag,
-    tagClassName: style.tagClassName,
+    kind: "System",
     time: formatTimeLabel(notification.time),
     title: notification.title,
     tone: style.tone,
@@ -127,6 +193,16 @@ function groupNotifications(notifications: NotificationViewModel[]) {
   });
 
   return Array.from(groups, ([date, items]) => ({ date, items }));
+}
+
+function groupNotificationItems(items: NotificationItem[]) {
+  const groups = new Map<string, NotificationItem[]>();
+
+  items.forEach((item) => {
+    groups.set(item.dateLabel, [...(groups.get(item.dateLabel) ?? []), item]);
+  });
+
+  return Array.from(groups, ([date, groupedItems]) => ({ date, items: groupedItems }));
 }
 
 function NotificationCard({ item }: { item: NotificationItem }) {
@@ -157,28 +233,18 @@ function NotificationCard({ item }: { item: NotificationItem }) {
         isAlert ? "border-[#ffe4e4] bg-[#fff1f1]" : "border-[#f9fafb] bg-white shadow-[0_1px_1px_rgba(0,0,0,0.05)]"
       }`}
     >
-      <div className={`flex gap-[14px] ${isAlert ? "items-start px-[18px] pb-[18px] pt-[16px]" : "items-center px-[18px] py-[18px] pr-[46px]"}`}>
+      <div className={`flex gap-[14px] ${isAlert ? "items-start px-[18px] pb-[18px] pt-[16px]" : "items-start px-[18px] py-[18px] pr-[46px]"}`}>
         <div className={`flex size-12 shrink-0 items-center justify-center rounded-full ${item.iconBg}`}>
           {item.icon}
         </div>
         <div className="min-w-0 flex-1">
-          <div className={`flex ${isAlert ? "items-start justify-between gap-[10px]" : "items-center justify-between gap-[12px]"}`}>
-            <div className={`min-w-0 ${isAlert ? "flex-1 pr-[4px]" : "flex min-w-0 items-center gap-[8px]"}`}>
-              <h3 className={`min-w-0 font-['SF_Compact_Rounded',sans-serif] text-[16px] font-bold leading-[19px] text-[#0d1b3e] ${isAlert ? "whitespace-normal" : "truncate whitespace-nowrap"}`}>
+          <div className={`flex ${isAlert ? "items-start justify-between gap-[10px]" : "items-start justify-between gap-[12px]"}`}>
+            <div className={`min-w-0 ${isAlert ? "flex-1 pr-[4px]" : "flex min-w-0 flex-1 items-start gap-[8px]"}`}>
+              <h3 className="min-w-0 break-words font-['SF_Compact_Rounded',sans-serif] text-[16px] font-bold leading-[19px] text-[#0d1b3e]">
                 {item.title}
               </h3>
-              {!isAlert && item.tag ? (
-                <span className={`shrink-0 rounded-[6px] px-[8px] py-[3px] font-['SF_Compact_Rounded',sans-serif] text-[10px] font-bold leading-[12px] ${item.tagClassName}`}>
-                  {item.tag}
-                </span>
-              ) : null}
             </div>
             <div className={`shrink-0 ${isAlert ? "flex flex-wrap items-center justify-end gap-[8px] pl-[6px]" : "flex items-center gap-[8px]"}`}>
-              {isAlert && item.tag ? (
-                <span className={`shrink-0 rounded-[10px] px-[10px] py-[5px] font-['SF_Compact_Rounded',sans-serif] text-[11px] font-bold leading-[12px] ${item.tagClassName}`}>
-                  {item.tag}
-                </span>
-              ) : null}
               <span className="font-['SF_Compact_Rounded',sans-serif] text-[11px] leading-[13px] text-[#6b7280]">{item.time}</span>
               {!item.isRead && <span className={`size-2 shrink-0 rounded-full ${item.dotColor}`} />}
             </div>
@@ -208,7 +274,7 @@ function NotificationCard({ item }: { item: NotificationItem }) {
 
                     alert("Changes confirmed!");
                     window.location.reload();
-                  } catch (err) {
+                  } catch {
                     alert("Error confirming changes");
                   }
                 }
@@ -222,23 +288,20 @@ function NotificationCard({ item }: { item: NotificationItem }) {
       {item.action ? (
         <ChevronRight className="absolute bottom-[20px] right-[18px] size-5 shrink-0 text-[#9ca3af]" strokeWidth={1.9} />
       ) : null}
-      {!isAlert ? <ChevronRight className="absolute right-[18px] top-1/2 size-5 -translate-y-1/2 text-[#9ca3af]" strokeWidth={1.9} /> : null}
+      {!isAlert && !item.action ? <ChevronRight className="absolute right-[18px] top-1/2 size-5 -translate-y-1/2 text-[#9ca3af]" strokeWidth={1.9} /> : null}
     </article>
   );
 }
 
 export default function NotificationsPage() {
-  const [activeTab, setActiveTab] = useState("All");
+  const [activeTab, setActiveTab] = useState<NotificationTab>("System");
   const [notifications, setNotifications] = useState<NotificationViewModel[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const notificationGroups = groupNotifications(notifications);
-  const visibleGroups = notificationGroups
-    .map((group) => ({
-      ...group,
-      items: activeTab === "All" ? group.items : group.items.filter((item) => item.kind === activeTab),
-    }))
-    .filter((group) => group.items.length > 0);
+  const systemGroups = groupNotifications(notifications);
+  const aiGroups = groupNotificationItems(AI_ASSISTANT_NOTIFICATIONS);
+  const visibleGroups = activeTab === "System" ? systemGroups : aiGroups;
+  const unreadAiCount = AI_ASSISTANT_NOTIFICATIONS.filter((item) => !item.isRead).length;
 
   useEffect(() => {
     let isMounted = true;
@@ -329,14 +392,21 @@ export default function NotificationsPage() {
             const isActive = tab === activeTab;
             return (
               <button
-                className={`h-[38px] shrink-0 rounded-full px-6 text-[14px] font-medium leading-[17px] transition-colors ${
+                className={`relative h-[38px] shrink-0 rounded-full px-6 text-[14px] font-medium leading-[17px] transition-colors ${
                   isActive ? "bg-[#0d3b66] text-white" : "border border-[#f3f4f6] bg-white text-[#6b7280]"
                 }`}
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 type="button"
               >
-                {tab}
+                <span className="inline-flex items-center gap-2">
+                  {tab}
+                  {tab === "AI assistant" && unreadAiCount > 0 ? (
+                    <span className={`flex size-[18px] items-center justify-center rounded-full text-[10px] font-bold leading-none ${isActive ? "bg-white text-[#e11d48]" : "bg-[#e11d48] text-white"}`}>
+                      {unreadAiCount}
+                    </span>
+                  ) : null}
+                </span>
               </button>
             );
           })}

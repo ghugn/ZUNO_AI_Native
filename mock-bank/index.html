@@ -100,7 +100,10 @@
       background: white;
       box-shadow: 0 0 40px rgba(0,0,0,0.08);
       overflow-x: hidden;
+      position: relative;
     }
+
+
 
     /* ── Account Hero Card ────────────────── */
     .account-hero {
@@ -771,6 +774,8 @@
 <!-- Main App -->
 <div class="app-container pb-nav">
 
+
+
   <div id="mainBankContent">
     <!-- Account Hero Card -->
     <div class="account-hero">
@@ -905,6 +910,9 @@
     <!-- Autoplay bar -->
     <div class="autoplay-bar">
       <button class="btn-auto-play" id="autoPlayBtn" onclick="triggerOverflowDemo()">💥 Demo 200k Overflow</button>
+      <button class="btn-auto-play" style="background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 2px 8px rgba(16,185,129,0.3); border: none; border-radius: 12px; font-weight: 700; color: white; cursor: pointer; transition: all 0.2s;" id="demoSplitBtn" onclick="triggerSplitBillDemo()">💸 Demo Chia Tiền BBQ 420k</button>
+      <button class="btn-auto-play" style="background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 2px 8px rgba(217,119,6,0.3); border: none; border-radius: 12px; font-weight: 700; color: white; cursor: pointer; transition: all 0.2s;" id="demoMidBtn" onclick="triggerMidRiskDemo()">⚠️ Demo 450k BBQ (Warning)</button>
+      <button class="btn-auto-play" style="background: linear-gradient(135deg, #dc2626, #b91c1c); box-shadow: 0 2px 8px rgba(220,38,38,0.3); border: none; border-radius: 12px; font-weight: 700; color: white; cursor: pointer; transition: all 0.2s;" id="demoHighBtn" onclick="triggerHighRiskDemo()">🚨 Demo 3.2M Scam (Lock)</button>
       <button class="btn-clear-tx" onclick="clearFeed()">🗑️ Clear History</button>
       <button class="btn-reset-mvp" onclick="showResetModal()" title="Reset entire demo to initial state">🔄 Reset MVP</button>
     </div>
@@ -1083,9 +1091,13 @@ function getZunoApiBase() {
 
 function getZunoFrontendUrl() {
   if (typeof window !== 'undefined' && window.location) {
+    const hostname = window.location.hostname;
     const protocol = window.location.protocol;
     if (protocol.startsWith('http')) {
-      return window.location.origin;
+      if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        return 'http://localhost:3000';
+      }
+      return `${protocol}//${hostname}:3000`;
     }
   }
   return 'http://localhost:3000';
@@ -1170,9 +1182,25 @@ async function init() {
   // Balance is always shown from startup — bank manages its own balance
   document.getElementById('heroBalance').textContent =
     CONFIG.currentBalance.toLocaleString('vi-VN');
+  
+  // Set default transaction date/time to now (local time)
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const localNowStr = `${year}-${month}-${day}T${hours}:${minutes}`;
+  const txDateInput = document.getElementById('txDate');
+  if (txDateInput) {
+    txDateInput.value = localNowStr;
+  }
+
   renderFeed();
   updateStats();
   await checkZunoStatus();
+
+
 
   try {
     const resp = await fetch(`${CONFIG.zunoApiBase}/webhook/users`, {
@@ -1393,8 +1421,54 @@ async function triggerOverflowDemo() {
     return;
   }
   
-  const transactionDate = document.getElementById('txDate')?.value || '2026-06-07T15:00';
+  const transactionDate = document.getElementById('txDate')?.value || new Date().toISOString().slice(0, 16);
   await startPaymentFlow('Nhà hàng nướng BBQ', 200000, 'Bữa tối buffet nướng 200k', 'food', transactionDate);
+}
+
+async function triggerSplitBillDemo() {
+  if (!isConnected || !zunoUserId) {
+    showZunoSuggestModal();
+    return;
+  }
+  
+  document.getElementById('merchantName').value = 'BBQ Garden';
+  document.getElementById('txAmount').value = 420000;
+  document.getElementById('txDesc').value = 'BBQ Buffet voi nhom 4 nguoi';
+  
+  const transactionDate = document.getElementById('txDate')?.value || new Date().toISOString().slice(0, 16);
+  await startPaymentFlow('BBQ Garden', 420000, 'BBQ Buffet voi nhom 4 nguoi', 'food', transactionDate);
+}
+
+async function triggerMidRiskDemo() {
+  if (!isConnected || !zunoUserId) {
+    showZunoSuggestModal();
+    return;
+  }
+  
+  document.getElementById('merchantName').value = 'Nhà hàng nướng BBQ';
+  document.getElementById('txAmount').value = 450000;
+  document.getElementById('txDesc').value = 'Thành viên đóng góp lẩu nướng BBQ';
+  
+  const transactionDate = document.getElementById('txDate')?.value || new Date().toISOString().slice(0, 16);
+  await startPaymentFlow('Nhà hàng nướng BBQ', 450000, 'Thành viên đóng góp lẩu nướng BBQ', 'food', transactionDate);
+}
+
+async function triggerHighRiskDemo() {
+  if (!isConnected || !zunoUserId) {
+    showZunoSuggestModal();
+    return;
+  }
+  
+  document.getElementById('merchantName').value = 'Kẻ giả mạo / Lừa đảo';
+  document.getElementById('txAmount').value = 3200000;
+  document.getElementById('txDesc').value = 'Chuyển tiền khẩn cấp cứu trợ';
+  
+  const dateObj = new Date();
+  dateObj.setHours(2, 45, 0, 0); // 02:45 AM
+  const suspiciousDate = dateObj.toISOString().slice(0, 16);
+  document.getElementById('txDate').value = suspiciousDate;
+  
+  await startPaymentFlow('Kẻ giả mạo / Lừa đảo', 3200000, 'Chuyển tiền khẩn cấp cứu trợ', 'future', suspiciousDate);
 }
 
 // ── Payment Flow State & Functions ────────────────────────────
@@ -1455,16 +1529,66 @@ async function startPaymentFlow(merchantName, amount, description, bankCategory,
     document.getElementById('confirmDesc').textContent = description || merchantName;
     document.getElementById('confirmAmount').textContent = amount.toLocaleString('vi-VN') + ' ₫';
 
-    // Show/hide overflow warnings & configure button styles
-    if (willOverflow) {
-      document.getElementById('overflowWarningBanner').style.display = 'block';
+    // Show/hide warnings & configure styles
+    const overflowWarningBanner = document.getElementById('overflowWarningBanner');
+    if (amount === 450000) {
+      overflowWarningBanner.style.display = 'block';
+      overflowWarningBanner.innerHTML = '⚠️ <strong>Abnormal Spending Detected:</strong> This BBQ dinner expense is 10x higher than your daily food average!';
+      overflowWarningBanner.style.background = '#fffbeb';
+      overflowWarningBanner.style.borderColor = '#fef3c7';
+      overflowWarningBanner.style.color = '#b45309';
+      
+      document.getElementById('infoConfirmBanner').style.display = 'none';
+      document.getElementById('confirmAmount').style.color = 'var(--bank-warning)';
+      document.getElementById('confirmRecipName').style.color = 'var(--mb-primary)';
+      document.getElementById('normalActions').style.display = 'none';
+      
+      // Configure overflow/warning actions style to match
+      document.getElementById('overflowActions').style.display = 'flex';
+      const bypassBtn = document.getElementById('overflowActions').querySelector('.btn-submit');
+      if (bypassBtn) {
+        bypassBtn.textContent = 'Continue';
+        bypassBtn.style.background = 'linear-gradient(135deg, #d97706, #f59e0b)';
+        bypassBtn.style.boxShadow = '0 4px 12px rgba(217,119,6,0.3)';
+      }
+    } else if (amount === 3200000) {
+      overflowWarningBanner.style.display = 'block';
+      overflowWarningBanner.innerHTML = '🚨 <strong>Critical Risk Detected:</strong> Unusually high-value late night transfer!';
+      overflowWarningBanner.style.background = '#fff5f5';
+      overflowWarningBanner.style.borderColor = '#fca5a5';
+      overflowWarningBanner.style.color = '#dc2626';
+      
       document.getElementById('infoConfirmBanner').style.display = 'none';
       document.getElementById('confirmAmount').style.color = 'var(--bank-danger)';
       document.getElementById('confirmRecipName').style.color = 'var(--bank-danger)';
       document.getElementById('normalActions').style.display = 'none';
       document.getElementById('overflowActions').style.display = 'flex';
+      const bypassBtn = document.getElementById('overflowActions').querySelector('.btn-submit');
+      if (bypassBtn) {
+        bypassBtn.textContent = 'Bypass';
+        bypassBtn.style.background = 'linear-gradient(135deg, #dc2626, #ef4444)';
+        bypassBtn.style.boxShadow = '0 4px 12px rgba(220,38,38,0.3)';
+      }
+    } else if (willOverflow) {
+      overflowWarningBanner.style.display = 'block';
+      overflowWarningBanner.innerHTML = '⚠️ <strong>Overlimit Warning:</strong> This expense will trigger the overflow mechanism of your Food fund on ZUNO!';
+      overflowWarningBanner.style.background = '#fff5f5';
+      overflowWarningBanner.style.borderColor = '#fca5a5';
+      overflowWarningBanner.style.color = '#dc2626';
+      
+      document.getElementById('infoConfirmBanner').style.display = 'none';
+      document.getElementById('confirmAmount').style.color = 'var(--bank-danger)';
+      document.getElementById('confirmRecipName').style.color = 'var(--bank-danger)';
+      document.getElementById('normalActions').style.display = 'none';
+      document.getElementById('overflowActions').style.display = 'flex';
+      const bypassBtn = document.getElementById('overflowActions').querySelector('.btn-submit');
+      if (bypassBtn) {
+        bypassBtn.textContent = 'Bypass';
+        bypassBtn.style.background = 'linear-gradient(135deg, #ea580c, #f97316)';
+        bypassBtn.style.boxShadow = '0 4px 12px rgba(234,88,12,0.3)';
+      }
     } else {
-      document.getElementById('overflowWarningBanner').style.display = 'none';
+      overflowWarningBanner.style.display = 'none';
       document.getElementById('infoConfirmBanner').style.display = 'block';
       document.getElementById('confirmAmount').style.color = 'var(--mb-dark)';
       document.getElementById('confirmRecipName').style.color = 'var(--mb-primary)';
@@ -1552,6 +1676,18 @@ function pressKey(key) {
 async function submitPaymentWithOtp() {
   if (!currentPendingTx) return;
   const { merchantName, amount, description, bankCategory, transactionDate } = currentPendingTx;
+
+  // Intercept specific amounts for demo redirect flow
+  if (amount === 450000) {
+    const returnUrl = encodeURIComponent(window.location.href);
+    window.location.href = getZunoFrontendUrl() + '/pre-spending-risk-intercept?returnUrl=' + returnUrl;
+    return;
+  }
+  if (amount === 3200000) {
+    const returnUrl = encodeURIComponent(window.location.href);
+    window.location.href = getZunoFrontendUrl() + '/risk-intercept-high?returnUrl=' + returnUrl;
+    return;
+  }
   
   // Return to main bank UI
   document.getElementById('paymentFlowSection').style.display = 'none';
