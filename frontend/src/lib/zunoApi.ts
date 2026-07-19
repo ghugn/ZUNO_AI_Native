@@ -1020,13 +1020,13 @@ export async function getBudgetScreenData(month: string): Promise<BudgetScreenDa
 
 export async function getNotifications(month: string): Promise<NotificationViewModel[]> {
   const [overflows, pendingOverflows, rewards, aiLogs, transactions] = await Promise.all([
-    getOverflows(month),
+    getOverflows(),
     getPendingOverflows(),
     getWeeklyRewardsByMonth(month),
     getAiLogs(),
     USE_MOCK
-      ? Promise.resolve(MOCK_DB.transactions.filter((transaction) => isSameMonth(transaction.transactionDate, month)))
-      : apiClient.get<RawTransaction[]>("/api/transactions", { query: { month } }),
+      ? Promise.resolve(MOCK_DB.transactions)
+      : apiClient.get<RawTransaction[]>("/api/transactions"),
   ]);
   return adaptNotifications(overflows, pendingOverflows, rewards, aiLogs, transactions);
 }
