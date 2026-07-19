@@ -52,6 +52,32 @@ export async function handleOverspending(params: {
   if (residenceType === 'rent' || residenceType === 'professional') {
     // rent và professional quản lý lố theo tuần.
     // Trong tuần các ngày khác vẫn giữ nguyên, cuối tuần mới tổng hợp lại chia đều cho các tuần còn lại.
+    
+    // Ghi sự kiện overflow cho rent/pro để hiển thị trên lịch và thông báo
+    await prisma.overflowEvent.create({
+      data: {
+        userId,
+        transactionId,
+        eventDate: new Date(transactionDate),
+        overflowLevel: 'level_1',
+        overflowAmount: overspentAmount,
+        sourceFundType: 'food',
+        borrowedFromFundType: null,
+        status: 'pending',
+        penaltyApplied: {
+          note: 'Rent/Pro daily overflow (pending weekly aggregation)',
+        },
+      },
+    });
+
+    await createNotification({
+      userId,
+      type: 'overflow',
+      title: '⚠️ Cảnh báo lố ngân sách!',
+      body: `Bạn đã tiêu lố ${overspentAmount.toLocaleString('vi-VN')}đ. Hệ thống sẽ tổng hợp và điều chỉnh vào cuối tuần.`,
+      actionHref: '/budgets',
+    });
+
     return {
       totalOverspent: overspentAmount,
       highestLevel: 'level_1',
