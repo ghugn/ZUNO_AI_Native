@@ -69,6 +69,12 @@ export async function createTransaction(input: CreateTransactionInput): Promise<
       spentAmount: { increment: amountBigInt },
     });
 
+    // Cập nhật số dư ngân hàng trong UserProfile
+    await prisma.userProfile.update({
+      where: { userId: input.userId },
+      data: { bankBalance: { decrement: amountBigInt } },
+    });
+
     // Kiểm tra nếu giao dịch thuộc quỹ Ăn uống
     overflow = await checkFoodOverspending(
       input.userId,
@@ -86,6 +92,12 @@ export async function createTransaction(input: CreateTransactionInput): Promise<
       allocatedAmount: { increment: amountBigInt },
     });
 
+    // Cập nhật số dư ngân hàng trong UserProfile
+    await prisma.userProfile.update({
+      where: { userId: input.userId },
+      data: { bankBalance: { increment: amountBigInt } },
+    });
+
     const fund = await prisma.fund.findUnique({ where: { id: input.fundId } });
     if (fund && fund.fundType === 'food') {
       await redistributeRemainingFoodBudget(input.userId, fund.month, txDate);
@@ -96,6 +108,12 @@ export async function createTransaction(input: CreateTransactionInput): Promise<
   if (input.transactionType === 'refund') {
     await optimisticFundUpdate(input.fundId, {
       spentAmount: { decrement: amountBigInt },
+    });
+
+    // Cập nhật số dư ngân hàng trong UserProfile
+    await prisma.userProfile.update({
+      where: { userId: input.userId },
+      data: { bankBalance: { increment: amountBigInt } },
     });
 
     const fund = await prisma.fund.findUnique({ where: { id: input.fundId } });
@@ -287,12 +305,22 @@ export async function deleteTransaction(transactionId: string) {
     await optimisticFundUpdate(tx.fundId, {
       spentAmount: { decrement: tx.amount },
     });
+    // Hoàn trả bankBalance
+    await prisma.userProfile.update({
+      where: { userId: tx.userId },
+      data: { bankBalance: { increment: tx.amount } },
+    });
   }
 
   // 1b. Hoàn trả allocatedAmount khi xóa giao dịch thu nhập (income)
   if (tx.transactionType === 'income') {
     await optimisticFundUpdate(tx.fundId, {
       allocatedAmount: { decrement: tx.amount },
+    });
+    // Hoàn trả bankBalance
+    await prisma.userProfile.update({
+      where: { userId: tx.userId },
+      data: { bankBalance: { decrement: tx.amount } },
     });
 
     if (tx.fund.fundType === 'food') {

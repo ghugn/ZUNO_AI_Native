@@ -474,7 +474,22 @@ function Component5({ className, onStreakChange }: Component5Props) {
     }
   });
   const selectedCalendarDay = calendarDayMap.get(selectedDate);
-  const selectedInsight = isInsightStatus(selectedCalendarDay?.status) ? aiInsightMap.get(selectedDate) ?? null : null;
+  let selectedInsight = isInsightStatus(selectedCalendarDay?.status) ? aiInsightMap.get(selectedDate) ?? null : null;
+
+  if (todayFood && todayFood.overflowAmount > 0 && !selectedInsight) {
+    selectedInsight = {
+      id: `dynamic_ai_micro_${selectedDate}`,
+      date: selectedDate,
+      severity: "warning",
+      overflowLevel: "level_1",
+      overflowAmount: todayFood.overflowAmount,
+      reason: "Food and Drinks",
+      message: "",
+      actionLabel: "Details",
+      actionHref: "/notifications",
+    };
+  }
+
   const shouldShowInsight = Boolean(selectedInsight && !dismissedInsightDates.has(selectedDate));
   const insightOffset = shouldShowInsight ? 134 : 0;
   const shouldShowSmartHub = Boolean(smartHubSuggestion && !dismissedSmartHubDates.has(selectedDate));
@@ -482,13 +497,15 @@ function Component5({ className, onStreakChange }: Component5Props) {
   const dailyBudget = todayFood ? Math.max(todayFood.budgetAmount, 1) : 1;
   const dailySpent = todayFood ? todayFood.spentMain + todayFood.spentSub : 0;
   const dailySpentPercent = todayFood ? Math.min(100, Math.max(0, (dailySpent / dailyBudget) * 100)) : 0;
-  const wrapStatusTone = selectedCalendarDay?.status === "overspendLevel1"
-    ? { background: "#F5D37A", text: "#6B4E00" }
-    : selectedCalendarDay?.status === "overspendLevel2" || selectedCalendarDay?.status === "overspendLevel3"
-      ? { background: "#F6B1B1", text: "#B4232E" }
-      : todayFood
-        ? { background: "#BCEAC8", text: "#237A3B" }
-        : { background: "#E6E6E6", text: "#546982" };
+  const wrapStatusTone = todayFood && (todayFood.overflowAmount > 0 || todayFood.remainingAmount === 0)
+    ? { background: "#F6B1B1", text: "#B4232E" }
+    : selectedCalendarDay?.status === "overspendLevel1"
+      ? { background: "#F5D37A", text: "#6B4E00" }
+      : selectedCalendarDay?.status === "overspendLevel2" || selectedCalendarDay?.status === "overspendLevel3"
+        ? { background: "#F6B1B1", text: "#B4232E" }
+        : todayFood
+          ? { background: "#BCEAC8", text: "#237A3B" }
+          : { background: "#E6E6E6", text: "#546982" };
 
   return (
     <div className={className || "h-[669px] relative w-[380px]"} data-node-id="545:1586">
